@@ -1,0 +1,6 @@
+{
+    "require": {
+        "katzgrau/klogger": "dev-master",
+        "smarty/smarty": "~3.1"
+    }
+}
