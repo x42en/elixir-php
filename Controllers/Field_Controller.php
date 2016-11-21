@@ -46,7 +46,7 @@ class Field_Controller extends LXR_Controller
             if (!empty($request->flags))
                 $result = $this->handle->checkValueAgainstField($request->ressource, $request->flags);
             else if (!empty($request->ressource))
-                $resutl = $this->handle->getFieldByName($request->ressource);
+                $result = $this->handle->getFieldByName($request->ressource);
             else
                 $result = $this->handle->getFieldList($request->count);
             
