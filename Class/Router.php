@@ -33,6 +33,7 @@ class Router{
     public $verb;
     public $type;
     public $ressource;
+    public $data;
     public $flags;
     public $recursive;
     public $view;
@@ -62,6 +63,7 @@ class Router{
         $this->offset = 0;
         $this->sort = NULL;
         $this->infos = array();
+        $this->data = NULL;
     }
 
     // Parse current request
@@ -94,7 +96,8 @@ class Router{
             $this->getType();
             $this->getRessource();
             $this->getFlags();
-            
+            $this->getData();
+
             // Get specific LXR params
             if(!empty($raw['query'])){
                 $this->getOptionals($raw['query']);
@@ -175,6 +178,93 @@ class Router{
             // Store field selection
             $this->selector[$field_name] = base64_decode($value);
         }
+    }
+
+    // Retrieve data from request
+    private function getData($query){
+        // first of all, pull the GET vars
+        if (isset($_SERVER['QUERY_STRING'])) {
+            parse_str($_SERVER['QUERY_STRING'], $this->data);
+        }
+        
+        // Dealing with PUT/POST bodies override what we got from GET
+        $body = file_get_contents("php://input");
+        
+        $content_type = FALSE;
+        
+        if (isset($_SERVER['CONTENT_TYPE'])) $content_type = $_SERVER['CONTENT_TYPE'];
+        
+        switch ($content_type) {
+                
+            // Json content
+            case "application/json":
+                return $this->parseJson($body);
+                
+            // Html content
+            case "text/html":
+                return $this->parseHtml($body);
+
+            // Html content from form
+            case "application/x-www-form-urlencoded":
+                return $this->parseHtml($body);
+                
+            // Xml content
+            case "text/xml":
+                return $this->parseXml($body);
+
+            case "application/xml":
+                return $this->parseXml($body);
+                
+            // Default parsing and format
+            default:
+                if(ucfirst(strtolower(DEFAULT_FORMAT)) === 'Html')
+                    return $this->parseHtml($body);
+                else
+                    return $this->parseJson($body);
+
+                break;
+        }
+
+        return FALSE;
+    }
+
+    private function parseHtml($body) {
+        parse_str($body, $postvars);
+        
+        if(empty($postvars)) return TRUE;
+        
+        if (!is_array($postvars)) return FALSE;
+        
+        foreach ($postvars as $field => $value) {
+            $this->data[$field] = $value;
+        }
+        
+        $this->format = "html";
+        
+        return TRUE;
+    }
+    
+    private function parseXml($body) {
+        $this->data = simplexml_load_file($body);
+        $this->format = "xml";
+        
+        return TRUE;
+    }
+    
+    private function parseJson($body) {
+        if(empty($body)) return TRUE;
+
+        $body_params = json_decode($body, TRUE);
+        
+        if (!is_array($body_params)) return FALSE;
+        
+        foreach ($body_params as $param_name => $param_value) {
+            $this->data[$param_name] = $param_value;
+        }
+        
+        $this->format = "json";
+        
+        return TRUE;
     }
 
 }

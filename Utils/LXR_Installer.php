@@ -175,7 +175,7 @@ Class Installer{
                 if($this->startsWith($field_type, 'varchar')){
                     preg_match('#\((.*?)\)#', $options['Type'], $match);
                     $max = $match[1];
-                    $regex = "~^(.*){1,$max}~u";
+                    $regex = "~^(.){1,$max}~u";
                 }
                 else if($this->startsWith($field_type, 'int')){
                     preg_match('#\((.*?)\)#', $options['Type'], $match);
