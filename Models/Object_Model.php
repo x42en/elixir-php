@@ -65,7 +65,6 @@ class Object_Model extends Struct_Model
     public function objectExists($objectType, $id) {
         $this->getObjectByID($objectType, $id, FALSE);
         return !empty($this->result[0]);
-        // return !empty($this->flag_list[$name]);
     }
     
     // Return the list of available objects
@@ -80,7 +79,6 @@ class Object_Model extends Struct_Model
             if (isset($options['SYSTEM']) && $options['SYSTEM']) continue;
             
             $this->result[$name] = $this->structure_list[$name];
-            // $this->result[] = $name;
         }
         
         if (empty($this->result) || !is_array($this->result)) return FALSE;

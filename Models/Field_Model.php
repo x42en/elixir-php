@@ -53,7 +53,6 @@ class Field_Model extends LXR_Model
     
     // Store specific field in result
     public function getFieldByName($name) {
-        
         if (!$this->fieldExists($name)){
             throw new LxrException('Unknown field.', 11);
         }
@@ -86,9 +85,9 @@ class Field_Model extends LXR_Model
         
         if (!$this->fieldExists($fieldName) || empty($this->field_list[$fieldName]['REGEX'])) return FALSE;
         
-        if (!is_string($value)) return FALSE;
+        if (!is_array($value) || !is_string($value[0])) return FALSE;
         
-        if (preg_match($this->field_list[$fieldName]['REGEX'], $value)) return TRUE;
+        if (preg_match($this->field_list[$fieldName]['REGEX'], $value[0])) return TRUE;
         else return FALSE;
     }
 

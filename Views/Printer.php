@@ -74,6 +74,10 @@ class Printer{
             $result['Debug'] = TRUE;
 
         header($header);
+        // Set Cors wide open (overwrite nginx troubles on this...)
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+        // header('Access-Control-Allow-Headers');
 
         switch ($this->format) {
             case 'json':
