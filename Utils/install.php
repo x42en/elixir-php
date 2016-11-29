@@ -29,12 +29,13 @@ define('__VERSION__','0.1.0');
 
 require_once (__ROOT__ . 'Utils/LXR_Installer.php');
 
-$bot = new Installer();
 $options = array();
 
 echo "_____________________________________________________\n";
 echo "\n\t3l1x1R v" . __VERSION__ . " Installer process...\n";
 echo "_____________________________________________________\n\n";
+
+$bot = new Installer();
 
 // Import extended exception
 require_once (__ROOT__ . 'Utils/LXR_Exceptions.php');

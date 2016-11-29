@@ -30,8 +30,18 @@ Class Installer{
     private $connector;
     private $fields;
     private $structs;
+    private $is_root;
 
     public $found;
+
+    public function __construct(){
+        $this->is_root = (0 == posix_getuid()) ? True : False;
+        if(!$this->is_root){
+            echo "##########################   WARNING !!   ############################\n";
+            echo "[!] You're not root !!\n[!] Your web server config files won't be written to disk...\n";
+            echo "#######################################################################\n\n";
+        }
+    }
 
 
     // Check db connection
@@ -348,38 +358,46 @@ EOD;
                 allow from all
         </Directory>
 
-        ErrorLog ${APACHE_LOG_DIR}/error.log
+        ErrorLog /var/log/elixir/error.log
 
         LogLevel warn
 
-        CustomLog ${APACHE_LOG_DIR}/access.log combined
+        CustomLog /var/log/elixir/access.log combined
 </VirtualHost>
 EOD;
         }
 
         $fname = '/etc/'.$server.'/site-available/'.$host;
 
-        if(file_exists($fname)){
-            $rewrite = $this->ask('An homonym vhost already exists, rewrite it [Y/n]','y',['y','Y','n','N']);
-            if ($rewrite){
-                $handle = fopen($fname, "w") or die("Unable to append to file $fname!");
+        if($this->is_root){
+            if(file_exists($fname)){
+                $rewrite = $this->ask('An homonym vhost already exists, rewrite it [Y/n]','y',['y','Y','n','N']);
+                if ($rewrite){
+                    $handle = fopen($fname, "w") or die("[!] Unable to append to file $fname!");
+                }
+                else{
+                    $handle = fopen($fname, "a") or die("[!] Unable to append to file $fname!");
+                }
+                    
             }
             else{
-                $handle = fopen($fname, "a") or die("Unable to append to file $fname!");
+                $handle = fopen($fname, "w") or die("[!] Unable to write to file $fname!");
             }
-                
+
+            if (fwrite($handle, $vhost) === FALSE) {
+                echo "[!] Unable to write in file ($fname)";
+                exit;
+            }else{
+                echo "[+] Vhost config wrote to $fname\n";
+                echo "[!] Activate your website by typing:\n\t#> ln -s $fname /etc/$server/site-enabled";
+            }
         }
         else{
-            $handle = fopen($fname, "w") or die("Unable to write to file $fname!");
+            echo "[+] I should have wrote to $fname :\n";
+            echo $vhost;
+            echo "\n\n";
         }
-
-        if (fwrite($handle, $vhost) === FALSE) {
-            echo "Unable to write in file ($fname)";
-            exit;
-        }else{
-            echo "[+] Vhost config wrote to $fname\n";
-            echo "[!] Activate your website by typing:\n\t#> ln -s $fname /etc/$server/site-enabled";
-        }
+            
 
     }
 
@@ -419,26 +437,34 @@ EOD;
 
         $fname = '.htaccess';
 
-        if(file_exists($fname)){
-            $rewrite = $this->ask('An .htaccess already exists, rewrite it [Y/n]','y',['y','Y','n','N']);
-            if ($rewrite){
-                $handle = fopen($fname, "w") or die("Unable to append to file $fname!");
+        if($this->is_root){
+            if(file_exists($fname)){
+                $rewrite = $this->ask('An .htaccess already exists, rewrite it [Y/n]','y',['y','Y','n','N']);
+                if ($rewrite){
+                    $handle = fopen($fname, "w") or die("[!] Unable to append to file $fname!");
+                }
+                else{
+                    $handle = fopen($fname, "a") or die("[!] Unable to append to file $fname!");
+                }
             }
             else{
-                $handle = fopen($fname, "a") or die("Unable to append to file $fname!");
+                $handle = fopen($fname, "a") or die("[!] Unable to write to file .htaccess!");
+            }
+
+            if (fwrite($handle, $config) === FALSE) {
+                echo "[!] Unable to write in file ($fname)";
+                exit;
+            }else{
+                echo "[+] .htaccess config wrote to $fname\n";
+                echo "[!] Activate your website by typing:\n\t#> ln -s $fname /etc/$server/site-enabled\n";
             }
         }
         else{
-            $handle = fopen($fname, "a") or die("Unable to write to file .htaccess!");
+            echo "[+] I should have wrote to $fname :\n";
+            echo $config;
+            echo "\n\n"; 
         }
-
-        if (fwrite($handle, $config) === FALSE) {
-            echo "Unable to write in file ($fname)";
-            exit;
-        }else{
-            echo "[+] .htaccess config wrote to $fname\n";
-            echo "[!] Activate your website by typing:\n\t#> ln -s $fname /etc/$server/site-enabled\n";
-        }
+            
     }
 
     // Ask question to user
