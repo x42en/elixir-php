@@ -27,12 +27,14 @@ define('__ROOT_URL__','http://elixir.lxr');
 class FieldTest extends PHPUnit_Framework_TestCase
 {
     protected $client;
+    protected $field;
 
     protected function setUp()
     {
         $this->client = new GuzzleHttp\Client([
                     'base_uri' => __ROOT_URL__
                     ]);
+        $this->field = ['Name' => 'test', 'Regex' => '~^[0-9]{3}$~', 'Description' => 'Test field'];
     }
 
     public function testGet_Field() {
@@ -59,13 +61,7 @@ class FieldTest extends PHPUnit_Framework_TestCase
         // $bookId = uniqid();
         echo "[+] Create field\n";
 
-        $response = $this->client->post('/field', [
-            'json' => [
-                'Name'    => 'test',
-                'Regex'     => '~^[0-9]{3}$~',
-                'Description'    => 'Test field'
-            ]
-        ]);
+        $response = $this->client->post('/field', [ 'json' => $this->field ]);
 
         $this->assertEquals(200, $response->getStatusCode());
 
@@ -77,38 +73,34 @@ class FieldTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Field', $data['Type']);
         
         $this->assertArrayHasKey('ID', $data['Data']);
+        $this->fieldID = $data['Data']['ID'];
     }
 
     public function testPut_Field() {
         echo "[+] Update field\n";
 
-        $response = $this->client->put('/field/Test', [
-            'json' => [
-                'Name'    => 'test',
-                'Regex'     => '~^[0-9]{3}$~',
-                'Description'    => 'Test field modified'
-            ]
-        ]);
+        $new_field = ['Name' => 'modified', 'Regex' => '~^[0-9]{5}$~', 'Description' => 'Test field modified'];
+
+        $response = $this->client->put('/field/Test', [ 'json' => $new_field ]);
 
         $this->assertEquals(200, $response->getStatusCode());
 
         $data = json_decode($response->getBody(), true);
-        echo $response->getBody();
+        
         $this->assertArrayHasKey('State', $data);
         $this->assertEquals(True, $data['State']);
         $this->assertArrayHasKey('Type', $data);
         $this->assertEquals('Field', $data['Type']);
         
-        
-        // $this->assertArrayHasKey('ID', $data['Data']);
+        // should return the modified field...
+        echo $response->getBody();
+        // $this->assertEquals($new_field, $data['Data']);
     }
 
     public function testDelete_Field() {
         echo "[+] Delete field\n";
 
-        $response = $this->client->delete('/field/Test', [
-            'http_errors' => false
-        ]);
+        $response = $this->client->delete('/field/Modified', [ 'http_errors' => false ]);
 
         $this->assertEquals(200, $response->getStatusCode());
     }

@@ -179,7 +179,7 @@ Class Installer{
         foreach ($struct as $name => $options) {
             // Add table name to field (good idea ?)
             $name = $table . '_' . $name;
-            
+
             // Add field if necessary
             if(!in_array($name, array_keys($this->fields))){
                 
@@ -376,15 +376,15 @@ EOD;
             if(file_exists($fname)){
                 $rewrite = $this->ask('An homonym vhost already exists, rewrite it [Y/n]','y',['y','Y','n','N']);
                 if ($rewrite){
-                    $handle = fopen($fname, "w") or die("[!] Unable to append to file $fname!");
+                    $handle = fopen($fname, "w") or die("\n[!] Unable to append to file $fname!");
                 }
                 else{
-                    $handle = fopen($fname, "a") or die("[!] Unable to append to file $fname!");
+                    $handle = fopen($fname, "a") or die("\n[!] Unable to append to file $fname!");
                 }
                     
             }
             else{
-                $handle = fopen($fname, "w") or die("[!] Unable to write to file $fname!");
+                $handle = fopen($fname, "w") or die("\n[!] Unable to write to file $fname!");
             }
 
             if (fwrite($handle, $vhost) === FALSE) {
@@ -444,14 +444,14 @@ EOD;
             if(file_exists($fname)){
                 $rewrite = $this->ask('An .htaccess already exists, rewrite it [Y/n]','y',['y','Y','n','N']);
                 if ($rewrite){
-                    $handle = fopen($fname, "w") or die("[!] Unable to append to file $fname!");
+                    $handle = fopen($fname, "w") or die("\n[!] Unable to append to file $fname!");
                 }
                 else{
-                    $handle = fopen($fname, "a") or die("[!] Unable to append to file $fname!");
+                    $handle = fopen($fname, "a") or die("\n[!] Unable to append to file $fname!");
                 }
             }
             else{
-                $handle = fopen($fname, "a") or die("[!] Unable to write to file .htaccess!");
+                $handle = fopen($fname, "a") or die("\n[!] Unable to write to file .htaccess!");
             }
 
             if (fwrite($handle, $config) === FALSE) {
