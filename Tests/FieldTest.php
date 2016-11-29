@@ -2,6 +2,9 @@
 
 require('vendor/autoload.php');
 
+// Run the tests:
+//# php vendor/bin/phpunit FieldTest.php
+
 // Process:
 // List objects (should return an empty list)
 // POST field -> True
