@@ -131,7 +131,7 @@ echo "[3/3] Creating database and website...\n";
 echo "[+] Creating database tables with '$prefix' prefix.\n";
 $bot->install();
 
-echo "[+] Creating 3l1x1R website...\n";
+echo "\n[+] Creating 3l1x1R website...\n";
 if (strtolower($htaccess) == 'vhost'){
     $https = $bot->ask('Do you use HTTPS [Y/n]','y',['y','Y','n','N']);
     $bot->write_vhost($server, $host, $https);

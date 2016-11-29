@@ -125,7 +125,7 @@ Class Installer{
             try{
                 $connector->newField($name, $regex, 'Auto generated');
             }catch(Exception $e){
-                echo "Error ".$e->getMessage();
+                echo "\n[!] Error ".$e->getMessage();
             }
             
         }
@@ -136,7 +136,7 @@ Class Installer{
             try{
                 $connector->newStruct($name, 'Auto generated', $options['STRUCT']);
             }catch(Exception $e){
-                echo "Error ".$e->getMessage();
+                echo "\n[!] Error ".$e->getMessage();
             }
         }
     }
@@ -167,16 +167,19 @@ Class Installer{
         // If the table is not in Elixir format
         if(!array_key_exists('RW_ACCESS', array_keys($struct))) {
             // Add System column
-            $field['ID']['type'] = 'object';
-            $field['ID']['required'] = TRUE;
-            $field['ID']['increment'] = TRUE;
-            $field['ID']['primary'] = TRUE;
+            $field['_id']['type'] = 'object';
+            $field['_id']['required'] = TRUE;
+            $field['_id']['increment'] = TRUE;
+            $field['_id']['primary'] = TRUE;
             $field['FLAGS']['type'] = 'collection';
             $field['ACCESS']['type'] = 'collection';
             $field['RW_ACCESS']['type'] = 'collection';
         }
         // Parse table to get struct
         foreach ($struct as $name => $options) {
+            // Add table name to field (good idea ?)
+            $name = $table . '_' . $name;
+            
             // Add field if necessary
             if(!in_array($name, array_keys($this->fields))){
                 
