@@ -32,7 +32,7 @@ class User_Model extends LXR_Model
     
     function __construct($db_mode, $db_config) {
         try{
-            parent::__construct($db_mode, $db_config);
+            parent::__construct($db_mode, $db_config, 'User');
             // Retrieve field list for futur operations
             $this->user_list = $this->lxr->getUserList();
         }

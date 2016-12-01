@@ -35,7 +35,7 @@ class View_Model extends Struct_Model
     
     function __construct($db_mode, $db_config) {
         try{
-            parent::__construct($db_mode, $db_config);
+            parent::__construct($db_mode, $db_config, 'View');
             // Retrieve view list for futur operations
             $this->view_list = $this->lxr->getViewList();
         }

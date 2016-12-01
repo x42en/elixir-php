@@ -47,6 +47,9 @@ class PUT_Cleaner extends GENERIC_Cleaner
                     throw new LxrException('Invalid name.', 11);
                 }
                 
+                //Auto transform ressource
+                $request->ressource = ucfirst(strtolower($request->ressource));
+                
                 // If original name does not exists
                 if (!$handle->fieldExists($request->ressource)){
                     throw new LxrException('Unknown field.', 12);
@@ -73,16 +76,20 @@ class PUT_Cleaner extends GENERIC_Cleaner
                     throw new LxrException('Empty regex.', 16);
                 }
                 
-                // Allow registering regex based on existing regex name
-                if (isValidName($request->data['Regex']) && $handle->fieldExists($request->data['Regex']))
+                // Preformat field name if is valid (not a real regex)
+                if (isValidName($request->data['Regex'])){
+                    $request->data['Regex'] = ucfirst(strtolower($request->data['Regex']));
+                    // Allow registering regex based on existing regex name
                     $request->data['Regex'] = $handle->getRegex($request->data['Regex']);
-                
+                }
+
                 if (!$this->validate($request->data['Regex'])){
                     throw new LxrException('Invalid regex.', 17);
                 }
                 
-                if (!empty($request->data['Description']) && !isValidDescription($request->data['Description'])){
-                    throw new LxrException('Invalid description.', 18);
+                // Description is not mandatory
+                if (empty($request->data['Description']) && !isValidDescription($request->data['Description'])){
+                    $request->data['Description'] = 'N/A';
                 }
                 
                 break;
@@ -124,6 +131,11 @@ class PUT_Cleaner extends GENERIC_Cleaner
                 }
 
                 $request->data['Struct'] = stripslashes($request->data['Struct']);
+                
+                // Description is not mandatory
+                if (empty($request->data['Description']) && !isValidDescription($request->data['Description'])){
+                    $request->data['Description'] = 'N/A';
+                }
                 
                 break;
 

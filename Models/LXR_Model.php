@@ -24,8 +24,8 @@
  */
 
 
-// Load DBManager
-require_once (__ROOT__ . 'Class/DBManager.php');
+// Load DB_Manager
+require_once (__ROOT__ . 'Managers/DB_Manager.php');
 
 // Define a class of object structure manipulation
 Class LXR_Model
@@ -41,12 +41,12 @@ Class LXR_Model
     // Construction method take only 2 parameters
     // -first the db connection type
     // -second parameters useful for this db type
-    function __construct($storage = "file", $param = NULL) {
+    function __construct($storage = "file", $param = NULL, $type = NULL) {
         
         $this->result = null;
         $this->error = null;
         $this->message = null;
-        $this->system_fields = array("ID", "ACCESS", "RW_ACCESS", "FLAGS");
+        $this->system_fields = array("_id", "ACCESS", "RW_ACCESS", "FLAGS");
         
         // Check param for each DB type
         $storage = strtolower($storage);
@@ -81,29 +81,19 @@ Class LXR_Model
         }
         
         try {
-            $this->lxr = new DBManager($storage, $param);
+            if(!in_array($type, ['Field','Struct','Object','Flag','Error','User','View'])) throw new LxrException('Invalid type',913);
+            $manager = $type . '_Manager';
+            // Load validManager
+            require_once (__ROOT__ . 'Managers/' . $manager . '.php');
+            $this->lxr = new $manager($storage, $param);
         }
         catch(Exception $err) {
             throw $err;
         }
     }
 
-    // public function getResult(){
-    // 	$result = new stdClass();
-
-    // 	if(!empty($this->error)){
-    // 		$result->Error = $this->error;
-    // 		$result->Msg = $this->message;
-    // 	}
-    // 	else{
-    // 		$result->Data = $this->result;
-    // 	}
-
-    // 	return $result;
-    // }
-    
-    public function getTemplate($request) {
-        return stripslashes(base64_decode($this->lxr->getTemplate($request->type, $request->view, $request->format)));
-    }
+//    public function getTemplate($request) {
+//        return stripslashes(base64_decode($this->lxr->getTemplate($request->type, $request->view, $request->format)));
+//    }
 }
 ?>

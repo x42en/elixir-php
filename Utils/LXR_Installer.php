@@ -23,7 +23,7 @@
 *
 */
 
-require_once (__ROOT__ . 'Class/DBManager.php');
+require_once (__ROOT__ . 'Managers/Install_Manager.php');
 
 Class Installer{
     
@@ -114,11 +114,14 @@ Class Installer{
         
 
         // First create LXR structure
-        $connector = new DBManager($this->db_type,$this->db_params);
+        $connector = new Install_Manager($this->db_type,$this->db_params);
 
-        // Build LXR struct
-        $connector->initialize();
-        
+        try{
+            // Build LXR struct
+            $connector->initialize();
+        }catch (Exception $err){
+            throw new LxrException($err->getMessage(), $err->getCode());
+        }
         // Second populate fields
         foreach ($this->fields as $name => $regex) {
             echo "\t - Insert field $name ($regex)\n";
@@ -160,21 +163,16 @@ Class Installer{
     // Auto-Adapt LXR structure to existing data
     private function build_lxr_struct($table){
         $struct = $this->driver->getStruct($table);
+        // Detect if we are dealing with elixir tables
+        if(strpos($table, "LXR_") === 0) return False;
+        // Detect if table is already in elixir state
+        if(array_key_exists('RW_ACCESS', $struct)) return False;
+
+        // If the table is not in Elixir format
         // Store table structure
         echo "\t - NEW structure $table...\n";
         $field = array();
 
-        // If the table is not in Elixir format
-        if(!array_key_exists('RW_ACCESS', array_keys($struct))) {
-            // Add System column
-            $field['_id']['type'] = 'object';
-            $field['_id']['required'] = TRUE;
-            $field['_id']['increment'] = TRUE;
-            $field['_id']['primary'] = TRUE;
-            $field['FLAGS']['type'] = 'collection';
-            $field['ACCESS']['type'] = 'collection';
-            $field['RW_ACCESS']['type'] = 'collection';
-        }
         // Parse table to get struct
         foreach ($struct as $name => $options) {
             // Add table name to field (good idea ?)
@@ -212,11 +210,8 @@ Class Installer{
                 $regex = $this->fields[$name];
             }
 
-            if(strlen($regex) > 8){
-                $regex_short = substr($regex, 0, 7).' ...';
-            }else{
-                $regex_short = $regex;
-            }
+            if(strlen($regex) > 8) $regex_short = substr($regex, 0, 7).' ...';
+            else $regex_short = $regex;
             
             echo "\t\t - Field $name ($regex_short)\n";
             // Set field structure
@@ -230,6 +225,8 @@ Class Installer{
         $this->structs[$table] = array();
         $this->structs[$table]['NAME'] = $table;
         $this->structs[$table]['STRUCT'] = $field;
+
+        return True;
     }
 
     public function write_config($db_type, $params, $encoding=False, $prefix='_'){
@@ -264,7 +261,7 @@ Class Installer{
         
         // If some config has already been done
         if(strpos($previous_conf, '?>') !== FALSE){
-            preg_replace('?>', $conf, $previous_conf);
+            str_replace('?>', $conf, $previous_conf);
             $to_write = $previous_conf;
         }
         // If this is first time
@@ -277,6 +274,8 @@ Class Installer{
         }else{
             echo "[+] Application config wrote to $config\n";
         }
+
+        return True;
     }
 
     public function write_vhost($server, $host, $https=False){
@@ -463,7 +462,7 @@ EOD;
             }
         }
         else{
-            echo "[+] I should have wrote to $fname :\n";
+            echo "[+] I should have wrote to $fname (but I'm not root) :\n\n";
             echo $config;
             echo "\n\n"; 
         }

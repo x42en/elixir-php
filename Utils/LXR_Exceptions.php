@@ -31,12 +31,18 @@ class LxrException extends Exception
     }
 
     public function __toString() {
-    	$ex_str = "<html>\n<head>\n\t<title>Error " . $this->code . "</title>\n</head>\n<body>\n\t<div style='margin: 10%'>";
-        $ex_str .= '<h1><span style="color: red">Error ' . $this->code . '</span> - ' . $this->message . "</h1>\n";
-        if(defined('DEBUG_STATE') && DEBUG_STATE)
-            $ex_str .= '<div style="color: orange">Error from: <small><em>' . $this->file . ':' . $this->line . '</em></small>';
+        if (DEFAULT_FORMAT == 'html'){
+            $ex_str = "<html>\n<head>\n\t<title>Error " . $this->code . "</title>\n</head>\n<body>\n\t<div style='margin: 10%'>";
+            $ex_str .= '<h1><span style="color: red">Error ' . $this->code . '</span> - ' . $this->message . "</h1>\n";
+            if(defined('DEBUG_STATE') && DEBUG_STATE)
+                $ex_str .= '<div style="color: orange">Error from: <small><em>' . $this->file . ':' . $this->line . '</em></small>';
 
-        $ex_str .= "\n\t</div>\n</body>\n</html>";
+            $ex_str .= "\n\t</div>\n</body>\n</html>";
+        }
+        else{
+            if(defined('DEBUG_STATE') && DEBUG_STATE) $ex_str = "\n[!] Error (".$this->code."): ".$this->message."\n";
+            else $ex_str = "\n[!] Error (".$this->code.")\n";
+        }
 
         return $ex_str;
     }

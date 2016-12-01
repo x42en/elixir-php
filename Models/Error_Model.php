@@ -32,7 +32,7 @@ class Error_Model extends LXR_Model
     
     function __construct($db_mode, $db_config) {
         try{
-            parent::__construct($db_mode, $db_config);
+            parent::__construct($db_mode, $db_config, 'Error');
         }
         catch(Exception $err) {
             throw $err;

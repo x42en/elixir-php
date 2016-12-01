@@ -44,8 +44,6 @@ define('LOG_DIR', '/var/log/3l1x1r');
 // Define log level (DEBUG/INFO/NOTICE/WARNING/ERROR/CRITICAL/ALERT/EMERGENCY)
 define('LOG_LEVEL', 'notice');
 
-
-
 // Define if data should be base64 encoded in database
 define('ENCODING', False);
 // Define global debug state (will return useful informations in errors if active)

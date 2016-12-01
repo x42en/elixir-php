@@ -70,16 +70,17 @@ while(True){
         }
         
         $options['host'] = $bot->ask('Database host [localhost]','localhost');
-        $options['user'] = $bot->ask('Database user [root]','test');
-        $options['password'] = $bot->ask('Database password','testPass');
-        $options['bdd'] = $bot->ask('Database name [test]','photos');
+        $options['user'] = $bot->ask('Database user [root]','root');
+        $options['password'] = $bot->ask('Database password','');
+        $options['bdd'] = $bot->ask('Database name [test]','test');
     }
 
     echo "[+] Checking database connection, please validate configuration:\n";
 
     echo "\t Database type:\t $db_type\n";
     foreach ($options as $key => $value) {
-        echo "\t $key\t\t-> $value \n";
+        if($key == 'password') echo "\t $key\t-> $value \n";
+        else echo "\t $key\t\t-> $value \n";
     }
 
     $confirm = $bot->ask('Confirm this configuration [Y/n]','Y',['y','Y','n','N']);
@@ -102,7 +103,7 @@ if ($bot->found){
     $prefix = $bot->get_prefix();
     // If we want to restify databases... should not encode data
     if (strtolower($rest) == 'y'){
-        $prefix = $bot->ask("Set table prefix [$prefix]",$prefix,[$prefix,'LXR_','_']);
+        // $prefix = $bot->ask("Set table prefix [$prefix]",$prefix,[$prefix,'LXR_','_']);
         $encoding = 'False';
     }
     // If we create brand new elixir instance
@@ -129,7 +130,12 @@ $htaccess = $bot->ask('Do you use htaccess or vhost [htaccess]','htaccess',['hta
 echo "\n_____________________________________________________\n\n";
 echo "[3/3] Creating database and website...\n";
 echo "[+] Creating database tables with '$prefix' prefix.\n";
-$bot->install();
+try{
+    $bot->install();
+}catch(Exception $err){
+    echo $err;
+    die();
+}
 
 echo "\n[+] Creating 3l1x1R website...\n";
 if (strtolower($htaccess) == 'vhost'){

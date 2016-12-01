@@ -52,6 +52,9 @@ class GET_Cleaner extends GENERIC_Cleaner
                     if (!isValidName($request->ressource)){
                         throw new LxrException('Invalid field name.', 12);
                     }
+                    //Auto transform ressource
+                    $request->ressource = ucfirst(strtolower($request->ressource));
+                    
                     if(in_array($request->ressource, $this->system_object)){
                         throw new LxrException('Forbidden field name.', 13);
                     }

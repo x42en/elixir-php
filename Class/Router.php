@@ -181,7 +181,7 @@ class Router{
     }
 
     // Retrieve data from request
-    private function getData($query){
+    private function getData(){
         // first of all, pull the GET vars
         if (isset($_SERVER['QUERY_STRING'])) {
             parse_str($_SERVER['QUERY_STRING'], $this->data);

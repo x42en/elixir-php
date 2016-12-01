@@ -57,17 +57,20 @@ class POST_Cleaner extends GENERIC_Cleaner
                     throw new LxrException('Empty regex.', 14);
                 }
                 
-                // Allow registering regex based on existing regex name
-                if (isValidName($request->data['Regex']) && $handle->fieldExists($request->data['Regex'])){
+                // Preformat field name if is valid (not a real regex)
+                if (isValidName($request->data['Regex'])){
+                    $request->data['Regex'] = ucfirst(strtolower($request->data['Regex']));
+                    // Allow registering regex based on existing regex name
                     $request->data['Regex'] = $handle->getRegex($request->data['Regex']);
                 }
-                
+
                 if (!parent::validate($request->data['Regex'])){
                     throw new LxrException('Invalid regex.', 15);
                 }
                 
-                if (!empty($request->data['Description']) && !isValidDescription($request->data['Description'])){
-                    throw new LxrException('Invalid description.', 16);
+                // Description is not mandatory
+                if (empty($request->data['Description']) && !isValidDescription($request->data['Description'])){
+                    $request->data['Description'] = 'N/A';
                 }
                 
                 break;
@@ -96,6 +99,11 @@ class POST_Cleaner extends GENERIC_Cleaner
                 }
 
                 $request->data['Struct'] = stripslashes($request->data['Struct']);
+
+                // Description is not mandatory
+                if (empty($request->data['Description']) && !isValidDescription($request->data['Description'])){
+                    $request->data['Description'] = 'N/A';
+                }
                 
                 break;
 

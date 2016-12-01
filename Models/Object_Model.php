@@ -33,7 +33,7 @@ class Object_Model extends Struct_Model
     
 
     function __construct($db_mode, $db_config) {
-        parent::__construct($db_mode, $db_config);
+        parent::__construct($db_mode, $db_config, 'Object');
         
         $this->collection_list = [];
         $this->flag_list = $this->lxr->getFlagList();

@@ -32,7 +32,7 @@ class Flag_Model extends Object_Model
     
     function __construct($db_mode, $db_config) {
         try{
-            parent::__construct($db_mode, $db_config);
+            parent::__construct($db_mode, $db_config, 'Flag');
             // Retrieve flag list for futur operations
             $this->flag_list = $this->lxr->getFlagList();
         }

@@ -32,7 +32,7 @@ class Struct_Model extends Field_Model
     
     function __construct($db_mode, $db_config) {
         try {
-            parent::__construct($db_mode, $db_config);
+            parent::__construct($db_mode, $db_config, 'Struct');
             // Retrieve object structure list for futur operations
             $this->structure_list = $this->lxr->getStructureList();
         }catch(Exception $err) {

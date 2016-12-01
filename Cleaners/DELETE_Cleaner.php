@@ -46,6 +46,9 @@ class DELETE_Cleaner extends GENERIC_Cleaner
                 if (!isValidName($request->ressource)){
                     throw new LxrException('Invalid name.', 11);
                 }
+                //Auto transform ressource
+                $request->ressource = ucfirst(strtolower($request->ressource));
+                
                 if (!$handle->fieldExists($request->ressource)){
                     throw new LxrException('Unknown field.', 12);
                 }

@@ -129,49 +129,54 @@ Class MYSQL_Driver extends Abstract_Driver
         if ($dropFirst) $req = "DROP TABLE IF EXISTS `" . $tableName . "`;";
         else $req = '';
         
-        $primary = null;
-        
         // Starting query with standard values
         $req.= "CREATE TABLE IF NOT EXISTS `" . $tableName . "` (";
         
         // Append user defined values to query
         foreach ($structure as $key => $opts) {
-        	$type = 'text';
-        	if(!empty($opts['type'])){
-        		switch ($opts['type']) {
-        			case 'field':
-        				$type = 'text';
-        				break;
-        			
-        			case 'collection':
-        				$type = 'text';
-        				break;
-        			
-        			case 'object':
-        				$type = 'bigint(20)';
-        				break;
-        			
-        			case 'int':
-        				$type = 'int(11)';
-        				break;
-        			
-        			case 'bigint':
-        				$type = 'bigint(20)';
-        				break;
-        			
-        			case 'varchar':
-        				$type = 'varchar(250)';
-        				break;
-        			
-        			case 'vchar':
-        				$type = 'varchar(10)';
-        				break;
-        			
-        			default:
-        				$type = 'text';
-        				break;
-        		}
-        	}
+            if(!empty($opts['type'])){
+                switch ($opts['type']) {
+                    case 'field':
+                        $type = 'TEXT';
+                        break;
+                    
+                    case 'collection':
+                        $type = 'TEXT';
+                        break;
+                    
+                    case 'object':
+                        $type = 'BIGINT(20)';
+                        break;
+                    
+                    case 'int':
+                        $type = 'INT(11)';
+                        break;
+                    
+                    case 'bigint':
+                        $type = 'BIGINT(20)';
+                        break;
+                    
+                    case 'varchar':
+                        $type = 'VARCHAR(250)';
+                        break;
+                    
+                    case 'vchar':
+                        $type = 'VARCHAR(10)';
+                        break;
+
+                    case 'system':
+                        // ACCESS & RW_ACCESS are text
+                        $type = ($key == '_id') ? 'BIGINT(20)' : 'TEXT';
+                        break;
+                    
+                    default:
+                        $type = 'TEXT';
+                        break;
+                }
+            }else{
+                $type = 'TEXT';
+            }
+            
             $req.= "`" . $key . "` " . $type;
             
             if (!empty($opts['required']) && $opts['required']) $req.= " NOT NULL";
@@ -179,8 +184,8 @@ Class MYSQL_Driver extends Abstract_Driver
             
             if (!empty($opts['increment']) && $opts['increment']) $req.= " AUTO_INCREMENT";
             
-            // There can be only ONE primary key
-            if (!empty($opts['primary']) && $opts['primary']) $primary = $key;
+            // There can be complex PRIMARY key
+            if (!empty($opts['primary']) && $opts['primary']) $primary[] = $key;
             
             // There can be complex UNIQUE key
             if (!empty($opts['unique']) && $opts['unique']) $unique[] = $key;
@@ -188,23 +193,36 @@ Class MYSQL_Driver extends Abstract_Driver
             $req.= ",";
         }
         
-        // Ending query with standard values
-        if (!empty($primary)) $req.= "  PRIMARY KEY (`" . $primary . "`)";
+        // Adding primary key(s) to query
+        if(!empty($primary) && is_array($primary)){
+            
+            $req .= " PRIMARY KEY `".strtoupper($primary[0])."` (";
+            foreach ($primary as $v) {
+                $req .= "`".strtoupper($v)."`, ";
+            }
+            // Drop last comma and space
+            $req = substr($req, 0, -2);
 
+            // Close PRIMARY condition
+            $req .= ")";
+        }
+
+        // Adding unique key(s) to query
         if(!empty($unique) && is_array($unique)){
-        	if(!empty($primary)) $req .= ",";
+            if(!empty($primary)) $req .= ",";
 
-        	$req .= " UNIQUE KEY `".strtoupper($unique[0])."` (";
-        	foreach ($unique as $i => $v) {
-        		$req .= "`".strtoupper($v)."`, ";
-        	}
-        	// Drop last comma
-        	$req = substr($req, 0, -2);
+            $req .= " UNIQUE KEY `".strtoupper($unique[0])."` (";
+            foreach ($unique as $v) {
+                $req .= "`".strtoupper($v)."`, ";
+            }
+            // Drop last comma
+            $req = substr($req, 0, -2);
 
-        	// Close UNIQUE condition
-        	$req .= ")";
+            // Close UNIQUE condition
+            $req .= ")";
         }
         
+        // End query with standard params
         $req.= ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
         
         try {
@@ -243,10 +261,68 @@ Class MYSQL_Driver extends Abstract_Driver
     
     // Add a column to a table
     public function addColumn($table, $column, $params=null) {
-        $sql = "ALTER TABLE `" . $table . "` ADD `" . $column . "` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci";
+        $sql = "ALTER TABLE `" . $table . "` ADD ";
         
+        if(!empty($params['type'])){
+            switch ($params['type']) {
+                case 'field':
+                    $type = 'TEXT';
+                    break;
+                
+                case 'collection':
+                    $type = 'TEXT';
+                    break;
+                
+                case 'object':
+                    $type = 'BIGINT(20)';
+                    break;
+                
+                case 'int':
+                    $type = 'INT(11)';
+                    break;
+                
+                case 'bigint':
+                    $type = 'BIGINT(20)';
+                    break;
+                
+                case 'varchar':
+                    $type = 'VARCHAR(250)';
+                    break;
+                
+                case 'vchar':
+                    $type = 'VARCHAR(10)';
+                    break;
+
+                case 'system':
+                    // ACCESS & RW_ACCESS are text
+                    $type = ($column == '_id') ? 'bigint(20)' : 'TEXT';
+                    break;
+                
+                default:
+                    $type = 'TEXT';
+                    break;
+            }
+        }else{
+            $type = 'TEXT';
+        }
+        
+        $sql.= "`" . $column . "` " . $type;
+
+        // Add required flag if needed
         if (!empty($params['required']) && $params['required']) $sql.= " NOT NULL";
         else $sql.= " NULL";
+
+        // Column can be auto-increment
+        if (!empty($params['increment']) && $params['increment']) $sql.= " AUTO_INCREMENT";
+            
+        // Column can be unique
+        if (!empty($params['unique']) && $params['unique']) $sql .= " UNIQUE";
+
+        // Column can be primary
+        if (!empty($params['primary']) && $params['primary']) $sql .= " PRIMARY KEY";
+        
+        // add default mysql values
+        $sql .= "CHARACTER SET utf8 COLLATE utf8_general_ci";
         
         // Execute query against DB
         try {
@@ -568,11 +644,14 @@ Class MYSQL_Driver extends Abstract_Driver
     }
     
     private function execData($query) {
+
+        // Display SQL Query when debug mode
+        if(DEBUG_STATE) echo "SQL run: ".$query."\n";
         
         try {
             
             // Execute the query against the database
-            $sth = $this->DBH->exec($query);
+            $this->DBH->exec($query);
         }
         catch(PDOException $ex) {
             throw new Exception($ex->getMessage());

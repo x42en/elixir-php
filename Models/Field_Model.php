@@ -32,11 +32,11 @@ class Field_Model extends LXR_Model
     
     function __construct($db_mode, $db_config) {
         try {
-            parent::__construct($db_mode, $db_config);
+            parent::__construct($db_mode, $db_config, 'Field');
             // Retrieve field list for futur operations
             $this->field_list = $this->lxr->getFieldList();
         }
-        catch(Exception $e) {
+        catch(Exception $err) {
             throw $err;
         }
     }
@@ -93,12 +93,8 @@ class Field_Model extends LXR_Model
 
     // Return a field regex, this allow creating/updating field with regex based on regex name
     public function getRegex($fieldName) {
-        if (!$this->fieldExists($fieldName) || empty($this->field_list[$fieldName]['REGEX'])){
-            return NULL;
-        }
-        else{
-            return $this->field_list[$fieldName]['REGEX'];
-        }
+        if (!$this->fieldExists($fieldName) || empty($this->field_list[$fieldName]['REGEX'])) return NULL;
+        return $this->field_list[$fieldName]['REGEX'];
     }
     
     // Create a new field
@@ -142,7 +138,8 @@ class Field_Model extends LXR_Model
         if (!array_key_exists($newFieldName, $this->field_list)) {
             
             try {
-                $this->result['ID'] = $this->lxr->newField($newFieldName, $regex, $description);
+                $this->lxr->newField($newFieldName, $regex, $description);
+                $this->result['NAME'] = $newFieldName;
             }
             catch(Exception $err) {
                 throw $err;
@@ -152,13 +149,11 @@ class Field_Model extends LXR_Model
         else {
             
             try {
-                $this->lxr->updateField($newFieldName, $regex, $description);
+                $this->result = $this->lxr->updateField($newFieldName, $regex, $description);
             }
             catch(Exception $err) {
                 throw $err;
             }
-
-            $this->result['ID'] = $newFieldName;
         }
         
         return $this->result;
@@ -167,18 +162,17 @@ class Field_Model extends LXR_Model
     // Delete an existing field
     public function deleteField($fieldName = NULL) {
         
-        if (in_array(strtoupper($fieldName), $this->system_fields)){
+        if ($fieldName == '_id' || in_array(strtoupper($fieldName), $this->system_fields)){
             throw new LxrException('Undeletable field.', 16);
         }
 
         try {
-            $this->result = $this->lxr->deleteField($fieldName);
+            return $this->lxr->deleteField($fieldName);
         }
         catch(Exception $err) {
             throw $err;
         }
         
-        return $this->result;
     }
 }
 ?>
