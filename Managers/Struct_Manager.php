@@ -29,6 +29,27 @@ class Struct_Manager extends DB_Manager
         parent::__construct($type, $param);
     }
     
+    // Return all fields available
+    public function getFieldList(){
+        try{
+            $fields =  $this->driver->getData(DB_PREFIX.'Fields');
+        }catch(Exception $e){
+            throw new LxrException($e->getMessage(),1009);
+        }
+
+        if(empty($fields) || !is_array($fields))
+            return NULL;
+
+        $fields_list = array();
+        foreach ($fields as $key => $value) {
+            $name = strtocapital($value['NAME']);
+            $fields_list[$name]['REGEX'] = parent::decode_data($value['REGEX']);
+            $fields_list[$name]['DESCRIPTION'] = parent::decode_data($value['DESCRIPTION']);
+        }
+
+        return $fields_list;
+    }
+
     // Return all structures available
     public function getStructureList(){
         try{

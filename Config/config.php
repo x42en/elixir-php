@@ -32,6 +32,8 @@ define('LXR_SEPARATOR', ":");
 
 // Define the default format when requesting API without "format" parameter
 define('DEFAULT_FORMAT', 'json');
+// Define default language when not set
+define('DEFAULT_LANG', 'en');
 
 // Define useful max var corresponding to your DB values
 define('MAX_NAME_SIZE', 25);

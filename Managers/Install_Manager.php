@@ -62,10 +62,10 @@ Class Install_Manager extends DB_Manager
         $params['CODE']['required'] = TRUE;
         $params['CODE']['required'] = TRUE;
         $params['CODE']['primary'] = TRUE;
-        $params['MESSAGE']['type'] = 'text';
+        $params['MESSAGE']['type'] = 'varchar';
         $params['MESSAGE']['required'] = TRUE;
         $params['MESSAGE']['primary'] = TRUE;
-        $params['LANG']['type'] = 'text';
+        $params['LANG']['type'] = 'vchar';
         $params['LANG']['required'] = TRUE;
         $params['LANG']['primary'] = TRUE;
         

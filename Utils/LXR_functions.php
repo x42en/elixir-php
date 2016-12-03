@@ -271,18 +271,22 @@ function isValidFlag($flag) {
     if (substr($flag, 0, 1) === "_" && ctype_alnum(substr($flag, 1))) return TRUE;
     
     // If the flag is not indexable check that it's all alpha num
-    else if (substr($flag, 0, 1) === "!" && ctype_alnum(substr($flag, 1))) return TRUE;
+    if (substr($flag, 0, 1) === "!" && ctype_alnum(substr($flag, 1))) return TRUE;
     
     // If the flag is indexable check that it's not only digits
-    else if (is_int($flag) || ctype_digit($flag)) return FALSE;
-    else if (ctype_alnum($flag)) return TRUE;
-    else return FALSE;
+    if (is_int($flag) || ctype_digit($flag)) return FALSE;
+    if (ctype_alnum($flag)) return TRUE;
+    
+    return FALSE;
 }
 
 // Check that it's only a number (digit or int)
 function isValidID($id) {
-    if (empty($id) || (!ctype_digit($id) && !is_int($id)) || (int)$id > MAX_ID_SIZE) return FALSE;
-    else return TRUE;
+    if (empty($id)) return FALSE;
+    if (!ctype_digit($id) && !is_int($id))  return FALSE;
+    if ((int) $id > MAX_ID_SIZE) return FALSE;
+    
+    return TRUE;
 }
 
 // Check that it's only alphanum with underscore but not as starting char
@@ -290,23 +294,20 @@ function isValidName($name) {
     
     // If name is empty, exit
     if (empty($name)) return FALSE;
-    
     if (sizeof($name) > MAX_NAME_SIZE) return FALSE;
-    
     // If name start with _, exit
     if (substr($name, 0, 1) === "_") return FALSE;
-    
     // Drop all remaining _
     $name = str_replace("_", "", $name);
-    
     if (ctype_alnum($name) && !is_int($name) && !ctype_digit($name)) return TRUE;
-    else return FALSE;
+    
+    return FALSE;
 }
 
 // Check that a view name is valid
 function isValidView($name) {
     // Avoid mixing lang and view name
-    if (isValidName($name) && sizeof($name) <= 2) return TRUE;
+    if (isValidName($name) && sizeof($name) > 2) return TRUE;
     else return FALSE;
 }
 
@@ -315,11 +316,10 @@ function isValidLang($lang) {
     
     // If lang is empty, exit
     if (empty($lang)) return FALSE;
-    
     if (sizeof($lang) > 2) return FALSE;
+    if (!ctype_alpha($lang)) return FALSE;
     
-    if (ctype_alpha($lang)) return TRUE;
-    else return FALSE;
+    return TRUE;
 }
 
 // Check if a field description is valid

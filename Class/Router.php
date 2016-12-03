@@ -43,6 +43,8 @@ class Router{
     public $offset;
     public $sort;
     public $infos;
+    public $lang;
+    // public $id;
 
     public function __construct(){
         $this->allowed_methods = array('get', 'post', 'put', 'patch', 'delete', 'options');
@@ -64,6 +66,8 @@ class Router{
         $this->sort = NULL;
         $this->infos = array();
         $this->data = NULL;
+        $this->lang = DEFAULT_LANG;
+        // $this->id = NULL;
     }
 
     // Parse current request
@@ -139,6 +143,7 @@ class Router{
 
         // Get Ressource
         $this->ressource = $this->infos[0];
+        if (isValidID($this->ressource)) $this->id = $this->ressource;
         // Remove it from url
         array_splice($this->infos, 0, 1);
     }
@@ -147,12 +152,19 @@ class Router{
         if(empty($this->infos)) return TRUE;
 
         // Get flags
-        foreach ($this->infos as $key => $value) {
+        foreach ($this->infos as $value) {
+            // Avoid double slash troubles ;)
             if(empty($value)) continue;
+            // Set recursive flag if needed
             if($value === '@'){
                 $this->recursive = TRUE;
                 continue;
             }
+            // Catch ID if needed and exit, as no flags are necessary for an ID
+            // if(isValidID($value)){
+            //     $this->id = $value;
+            //     break;
+            // }
             $this->flags[] = $value;
         }
         
@@ -229,41 +241,34 @@ class Router{
     }
 
     private function parseHtml($body) {
-        parse_str($body, $postvars);
-        
-        if(empty($postvars)) return TRUE;
-        
-        if (!is_array($postvars)) return FALSE;
-        
-        foreach ($postvars as $field => $value) {
-            $this->data[$field] = $value;
-        }
-        
         $this->format = "html";
         
-        return TRUE;
+        parse_str($body, $postvars);
+        return $this->internalParser($postvars);
     }
     
     private function parseXml($body) {
-        $this->data = simplexml_load_file($body);
         $this->format = "xml";
         
-        return TRUE;
+        $postvars = simplexml_load_file($body);
+        return $this->internalParser($postvars);
     }
     
     private function parseJson($body) {
-        if(empty($body)) return TRUE;
-
-        $body_params = json_decode($body, TRUE);
-        
-        if (!is_array($body_params)) return FALSE;
-        
-        foreach ($body_params as $param_name => $param_value) {
-            $this->data[$param_name] = $param_value;
-        }
-        
         $this->format = "json";
         
+        $postvars = json_decode($body, TRUE);
+        return $this->internalParser($postvars);
+    }
+
+    private function internalParser($params){
+        if (empty($params)) return FALSE;
+        if (!is_array($params)) return FALSE;
+
+        foreach ($params as $param_name => $param_value) {
+            $this->data[$param_name] = $param_value;
+        }
+
         return TRUE;
     }
 

@@ -136,7 +136,7 @@ class PUT_Cleaner extends GENERIC_Cleaner
                 if (empty($request->data['Description']) && !isValidDescription($request->data['Description'])){
                     $request->data['Description'] = 'N/A';
                 }
-                
+
                 break;
 
             case 'View':
@@ -200,7 +200,7 @@ class PUT_Cleaner extends GENERIC_Cleaner
                 }
 
                 // We need a code AND a lang to update an error
-                if (empty($request->id) || !isValidID($request->id)){
+                if (empty($request->id)){
                     throw new LxrException('Invalid error ID.', 42);
                 }
                 

@@ -68,7 +68,7 @@ if(defined('LOG_DIR') && !empty(LOG_DIR)){
         $logger = new Katzgrau\KLogger\Logger(LOG_DIR, LOG_LEVEL);
     }
     catch(RuntimeException $e) {
-        die("Unable to write in log directory: ".LOG_DIR." !!\n");
+        die("\n[!] Unable to write in log directory: ".LOG_DIR." !!\n");
     }
 }
 else{

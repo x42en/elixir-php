@@ -49,24 +49,22 @@ class Printer{
     public function error($type, $error){
         $result = array();
         $result['Type'] = $type;
+        $reason = '200 OK';
 
         // Cheat on empty error
         if($error->getCode() == 204){
             $result['State'] = TRUE;
             $result['Data'] = [];
-            $reason = '200 OK';
         }
         else{
             $result['State'] = FALSE;
-            $result['Error'] = $error->getMessage();
+            if (defined('DEBUG_STATE') && DEBUG_STATE) $result['Message'] = $error->getMessage();
             $result['Code'] = $error->getCode();
-            $reason = '400 Bad Request';
         }
         
-        if($this->format === 'html')
-            $this->process("HTTP/1.1 $reason", "$error");
-        else
-            $this->process("HTTP/1.1 $reason", $result);
+        // if($this->format === 'html') $result = $error;
+        
+        $this->process("HTTP/1.1 200 OK", $result);
     }
 
     private function process($header, $result){
@@ -76,7 +74,8 @@ class Printer{
         header($header);
         // Set Cors wide open (overwrite nginx troubles on this...)
         header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+        // header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
         // header('Access-Control-Allow-Headers');
 
         switch ($this->format) {

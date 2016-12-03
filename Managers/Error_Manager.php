@@ -84,7 +84,7 @@ class Error_Manager extends DB_Manager
                             'MESSAGE' => $message,
                             'LANG' => $lang);
         try{
-            return $this->driver->insertData(DB_PREFIX.'Errors', $req_params, TRUE);
+            return $this->driver->insertData(DB_PREFIX.'Errors', $req_params);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1063);
         }
@@ -97,11 +97,17 @@ class Error_Manager extends DB_Manager
 
         $where = array('CODE' => $code,
                         'LANG' => $lang);
+        $updated = FALSE;
         try{
-            return $this->driver->updateData(DB_PREFIX.'Errors', $req_params, $where);
+            $this->driver->updateData(DB_PREFIX.'Errors', $req_params, $where);
+            $updated = $req_params;
+            $updated['CODE'] = $code;
+            $updated['LANG'] = $lang;
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1064);
         }
+
+        return $updated;
     }
 
     // Delete a specific error

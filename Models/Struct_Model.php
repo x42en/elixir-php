@@ -30,9 +30,10 @@ class Struct_Model extends Field_Model
     // Instantiation of local variable
     protected $structure_list;
     
-    function __construct($db_mode, $db_config) {
+    function __construct($db_mode, $db_config, $type=NULL) {
+        $this->type = (empty($type)) ? 'Struct' : $type;
         try {
-            parent::__construct($db_mode, $db_config, 'Struct');
+            parent::__construct($db_mode, $db_config, $this->type);
             // Retrieve object structure list for futur operations
             $this->structure_list = $this->lxr->getStructureList();
         }catch(Exception $err) {
@@ -175,10 +176,10 @@ class Struct_Model extends Field_Model
         }
         
         // Add the common structure
-        $fields['Id']['type'] = "system";
-        $fields['Flags']['type'] = "system";
-        $fields['Access']['type'] = "system";
-        $fields['RW_Access']['type'] = "system";
+        $fields['_id']['type'] = "system";
+        $fields['FLAGS']['type'] = "system";
+        $fields['ACCESS']['type'] = "system";
+        $fields['RW_ACCESS']['type'] = "system";
         
         
         // Merge fields found for this structure in array
@@ -206,7 +207,7 @@ class Struct_Model extends Field_Model
         // If object does not exists create it
         if (!$renamed && (empty($this->structure_list) || !array_key_exists($structName, $this->structure_list))) {
             try {
-                $this->result['ID'] = $this->lxr->newStruct($structName, $clean['DESCRIPTION'], $obj_struct);
+                $this->result['_id'] = $this->lxr->newStruct($structName, $clean['DESCRIPTION'], $obj_struct);
             }
             catch(Exception $err) {
                 throw $err;
@@ -284,7 +285,7 @@ class Struct_Model extends Field_Model
                 throw $err;
             }
 
-            $this->result['ID'] = $name;
+            $this->result['_id'] = $name;
         }
 
         return $this->result;

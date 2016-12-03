@@ -31,8 +31,9 @@ class Error_Model extends LXR_Model
     protected $error_list;
     
     function __construct($db_mode, $db_config) {
+        $this->type = 'Error';
         try{
-            parent::__construct($db_mode, $db_config, 'Error');
+            parent::__construct($db_mode, $db_config);
         }
         catch(Exception $err) {
             throw $err;
@@ -127,12 +128,13 @@ class Error_Model extends LXR_Model
 
         try {
             // Set POST OK
-            $this->result['ID'] = $this->lxr->newError($errorCode, $message, $lang);
+            $this->lxr->newError($errorCode, $message, $lang);
+            $this->result['CODE'] = $code;
+            $this->result['LANG'] = $lang;
         }
         catch(Exception $err) {
             throw $err;
-        }
-            
+        }   
         
         return $this->result;
     }
@@ -152,20 +154,16 @@ class Error_Model extends LXR_Model
         }
         
         // If error does not exists
-        if (empty($this->error_list[$lang]) || !array_key_exists($code, $this->error_list[$lang])){
+        if (empty($this->error_list[$lang]) || !array_key_exists($newErrorCode, $this->error_list[$lang])){
             throw new LxrException('Error does not exists.', 14);
         }
 
         try {
-            $this->lxr->updateError($newErrorCode, $message, $lang);
+            return $this->lxr->updateError($newErrorCode, $message, $lang);
         }
         catch(Exception $err) {
             throw $err;
         }
-
-        $this->result['ID'] = $lang.'/'.$newErrorCode;
-
-        return $this->result;
     }
     
     public function deleteError($code = NULL, $lang = NULL) {
@@ -183,13 +181,11 @@ class Error_Model extends LXR_Model
         
         try {
             // Set DELETE OK
-            $this->result = $this->lxr->deleteError($code, $lang);
+            return $this->lxr->deleteError($code, $lang);
         }
         catch(Exception $err) {
             throw $err;
         }
-
-        return $this->result;
     }
 }
 ?>

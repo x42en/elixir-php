@@ -41,7 +41,7 @@ Class LXR_Model
     // Construction method take only 2 parameters
     // -first the db connection type
     // -second parameters useful for this db type
-    function __construct($storage = "file", $param = NULL, $type = NULL) {
+    function __construct($storage = "file", $param = NULL) {
         
         $this->result = null;
         $this->error = null;
@@ -81,8 +81,8 @@ Class LXR_Model
         }
         
         try {
-            if(!in_array($type, ['Field','Struct','Object','Flag','Error','User','View'])) throw new LxrException('Invalid type',913);
-            $manager = $type . '_Manager';
+            if(!in_array($this->type, ['Field','Struct','Object','Flag','Error','User','View'])) throw new LxrException('Invalid type',913);
+            $manager = $this->type . '_Manager';
             // Load validManager
             require_once (__ROOT__ . 'Managers/' . $manager . '.php');
             $this->lxr = new $manager($storage, $param);

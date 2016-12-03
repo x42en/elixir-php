@@ -33,7 +33,8 @@ class Object_Model extends Struct_Model
     
 
     function __construct($db_mode, $db_config) {
-        parent::__construct($db_mode, $db_config, 'Object');
+        $this->type = 'Object';
+        parent::__construct($db_mode, $db_config, $this->type);
         
         $this->collection_list = [];
         $this->flag_list = $this->lxr->getFlagList();
@@ -431,7 +432,7 @@ class Object_Model extends Struct_Model
         foreach ($structure as $field => $fieldOpts) {
             
             // Avoid modifying the id field
-            if (strtolower($field) === "id") continue;
+            if (strtolower($field) === "_id") continue;
             
             $field = strtocapital($field);
             $fieldType = $fieldOpts['type'];
@@ -578,7 +579,7 @@ class Object_Model extends Struct_Model
         
         // If everything went fine, store the new object
         try {
-            $this->result['ID'] = $this->lxr->storeObject($objectType, $clean);
+            $this->result['_id'] = $this->lxr->storeObject($objectType, $clean);
         }
         catch(Exception $e) {
             $this->error = 3518;
@@ -594,7 +595,7 @@ class Object_Model extends Struct_Model
                 if (isValidFlag($f)) {
                     $f = ucfirst(strtolower($f));
                     try {
-                        $this->addFlagToID($objectType, $f, $this->result['ID']);
+                        $this->addFlagToID($objectType, $f, $this->result['_id']);
                     }
                     catch(Exception $e) {
                         $this->error = 3519;
@@ -607,7 +608,7 @@ class Object_Model extends Struct_Model
         
         // If no flag is set, asociate object to orphans
         else {
-            $this->setOrphan($objectType, $this->result['ID']);
+            $this->setOrphan($objectType, $this->result['_id']);
         }
         
         $this->collection_list[$objectType] = $this->getFlagByType($objectType);
@@ -659,7 +660,7 @@ class Object_Model extends Struct_Model
         
         $this->collection_list[$objectType] = $this->getFlagByType($objectType);
         
-        $this->result['ID'] = $id;
+        $this->result['_id'] = $id;
 
         return TRUE;
     }

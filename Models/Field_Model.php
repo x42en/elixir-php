@@ -30,9 +30,10 @@ class Field_Model extends LXR_Model
     // Instantiation of local variable
     protected $field_list;
     
-    function __construct($db_mode, $db_config) {
+    function __construct($db_mode, $db_config, $type=NULL) {
+        $this->type = (empty($type)) ? 'Field' : $type;
         try {
-            parent::__construct($db_mode, $db_config, 'Field');
+            parent::__construct($db_mode, $db_config, $this->type);
             // Retrieve field list for futur operations
             $this->field_list = $this->lxr->getFieldList();
         }
@@ -102,8 +103,16 @@ class Field_Model extends LXR_Model
         if (in_array(strtoupper($fieldName), $this->system_fields)){
             throw new LxrException('Forbidden field name.', 13);
         }
+
+        try {
+            $this->lxr->newField($fieldName, $regex, $description);
+            $this->result['NAME'] = $fieldName;
+        }
+        catch(Exception $err) {
+            throw $err;
+        }
         
-        return $this->updateField($fieldName, $fieldName, $regex, $description);
+        return $this->result;
     }
     
     // Update an existing field
@@ -134,38 +143,19 @@ class Field_Model extends LXR_Model
             $renamed = True;
         }
         
-        // If field does not exists, create it
-        if (!array_key_exists($newFieldName, $this->field_list)) {
-            
-            try {
-                $this->lxr->newField($newFieldName, $regex, $description);
-                $this->result['NAME'] = $newFieldName;
-            }
-            catch(Exception $err) {
-                throw $err;
-            }
+        try {
+            $this->result = $this->lxr->updateField($newFieldName, $regex, $description);
         }
-        // If field exists, update it
-        else {
-            
-            try {
-                $this->result = $this->lxr->updateField($newFieldName, $regex, $description);
-            }
-            catch(Exception $err) {
-                throw $err;
-            }
+        catch(Exception $err) {
+            throw $err;
         }
         
         return $this->result;
     }
     
-    // Delete an existing field
+    // Delete an existing field (checked by DELETE_Cleaner)
     public function deleteField($fieldName = NULL) {
         
-        if ($fieldName == '_id' || in_array(strtoupper($fieldName), $this->system_fields)){
-            throw new LxrException('Undeletable field.', 16);
-        }
-
         try {
             return $this->lxr->deleteField($fieldName);
         }

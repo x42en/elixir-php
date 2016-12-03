@@ -29,6 +29,75 @@ Class Object_Manager extends DB_Manager
         parent::__construct($type, $param);
     }
 
+    // Return all fields available
+    public function getFieldList(){
+        try{
+            $fields =  $this->driver->getData(DB_PREFIX.'Fields');
+        }catch(Exception $e){
+            throw new LxrException($e->getMessage(),1009);
+        }
+
+        if(empty($fields) || !is_array($fields))
+            return NULL;
+
+        $fields_list = array();
+        foreach ($fields as $key => $value) {
+            $name = strtocapital($value['NAME']);
+            $fields_list[$name]['REGEX'] = parent::decode_data($value['REGEX']);
+            $fields_list[$name]['DESCRIPTION'] = parent::decode_data($value['DESCRIPTION']);
+        }
+
+        return $fields_list;
+    }
+
+    // Return all structures available
+    public function getStructureList(){
+        try{
+            $structs =  $this->driver->getData(DB_PREFIX.'Structures');
+        }catch(Exception $e){
+            throw new LxrException($e->getMessage(),1010);
+        }
+
+        if(empty($structs) || !is_array($structs))
+            return NULL;
+
+        $structs_list = array();
+        foreach ($structs as $key => $value) {
+            $name = strtoupper($value['NAME']);
+            if(!empty($value['STRUCT']))
+                $structs_list[$name]['STRUCT'] = json_decode(parent::decode_data($value['STRUCT']), True);
+            else
+                $structs_list[$name]['STRUCT'] = '';
+            if(!empty($value['DESCRIPTION']))
+                $structs_list[$name]['DESCRIPTION'] = parent::decode_data($value['DESCRIPTION']);
+            else
+                $structs_list[$name]['DESCRIPTION'] = '';
+        }
+        
+        return $structs_list;
+    }
+
+    // Return all flags registered
+    public function getFlagList(){
+        $table = DB_PREFIX.'Flags';
+        $field = array ('FLAG', 'TYPE', 'OBJECT_ID');
+
+        try{
+            $tmp_list = $this->driver->selectData($table, $field);
+        }catch (Exception $e){
+            throw new LxrException($e->getMessage(),1015);
+        }
+
+        if(empty($tmp_list) || !is_array($tmp_list))
+            return NULL;
+
+        foreach ($tmp_list as $id => $entry) {
+            $flag_list[$entry['TYPE']][$entry['FLAG']] = ID2array($entry['OBJECT_ID']);
+        }
+
+        return $flag_list;
+    }
+
     // Return all ID entries of a certain type
     public function getObjectListByType($objectType, $count=0){
         $table = USER_PREFIX.$objectType;
