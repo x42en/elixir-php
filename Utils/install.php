@@ -27,6 +27,8 @@
 define('__ROOT__', "./");
 define('__VERSION__','0.1.0');
 
+require_once (__ROOT__ . 'Utils/LXR_functions.php');
+require_once (__ROOT__ . 'Managers/DB_Manager.php');
 require_once (__ROOT__ . 'Managers/Install_Manager.php');
 require_once (__ROOT__ . 'Utils/LXR_Installer.php');
 
@@ -42,85 +44,113 @@ $bot = new Installer();
 require_once (__ROOT__ . 'Utils/LXR_Exceptions.php');
 
 echo "[1/3] Configuring database.\n";
+$write = TRUE;
 
-// Configuration process for DB
-while(True){
-    $db_type = $bot->ask('Database type [MySQL]','mysql', ['mysql','mongo','postgres','file']);
-
-    if ($db_type == 'file'){
-        $options['filename'] = $bot->ask('Database file name [elixir.lxr]','elixir.lxr');
-    }
-    else{
-        // Adapt default port
-        switch ($db_type) {
-            case 'mysql':
-                $options['port'] = 3306;
-                break;
-            
-            case 'mongo':
-                $options['port'] = 27017;
-                break;
-            
-            case 'postgres':
-                $options['port'] = 5432;
-                break;
-            
-            default:
-                # code...
-                break;
-        }
-        
-        $options['host'] = $bot->ask('Database host [localhost]','localhost');
-        $options['user'] = $bot->ask('Database user [root]','root');
-        $options['password'] = $bot->ask('Database password','');
-        $options['bdd'] = $bot->ask('Database name [test]','test');
-    }
-
-    echo "[+] Checking database connection, please validate configuration:\n";
-
-    echo "\t Database type:\t $db_type\n";
-    foreach ($options as $key => $value) {
-        if($key == 'password') echo "\t $key\t-> $value \n";
-        else echo "\t $key\t\t-> $value \n";
-    }
-
-    $confirm = $bot->ask('Confirm this configuration [Y/n]','Y',['y','Y','n','N']);
-    if (strtolower($confirm) == 'y'){
-        try{
-            $bot->db_connect($db_type, $options);
-            break;
-        }catch(Exception $e){
-            echo "\n[!] Unable to connect, restart configuration process...\n\n";
-        }
-        
-    }else{
-        echo "\n[!] Restarting configuration process...\n\n";
-    }
+// If a config already exists
+if(file_exists(__ROOT__ . 'Config/db_config.php') && file_exists(__ROOT__ . 'Config/config.php')){
+    $confirm = $bot->ask('Config file exists, overwrite it [y/N]','n',['y','n']);
+    if($confirm == 'y') $write = TRUE;
+    else $write = FALSE;
 }
 
-if ($bot->found){
+// If config need to be overwritten
+if ($write == 'y'){
 
-    $rest = $bot->ask('Tables founds do you like to RESTIFY them [Y/n]','y',['y','Y','n','N']);
-    $prefix = $bot->get_prefix();
-    // If we want to restify databases... should not encode data
-    if (strtolower($rest) == 'y'){
-        // $prefix = $bot->ask("Set table prefix [$prefix]",$prefix,[$prefix,'LXR_','_']);
-        $encoding = 'False';
+    // Configuration process for DB
+    while(TRUE){
+        $db_type = $bot->ask('Database type [MySQL]','mysql', ['mysql','mongo','postgres','file']);
+
+        if ($db_type == 'file'){
+            $options['filename'] = $bot->ask('Database file name [elixir.lxr]','elixir.lxr');
+        }
+        else{
+            // Adapt default port
+            switch ($db_type) {
+                case 'mysql':
+                    $options['port'] = 3306;
+                    break;
+                
+                case 'mongo':
+                    $options['port'] = 27017;
+                    break;
+                
+                case 'postgres':
+                    $options['port'] = 5432;
+                    break;
+                
+                default:
+                    # code...
+                    break;
+            }
+            
+            $options['host'] = $bot->ask('Database host [localhost]','localhost');
+            $options['user'] = $bot->ask('Database user [root]','root');
+            $options['password'] = $bot->ask('Database password','');
+            $options['bdd'] = $bot->ask('Database name [test]','test');
+        }
+
+        echo "[+] Checking database connection, please validate configuration:\n";
+
+        echo "\t Database type:\t $db_type\n";
+        foreach ($options as $key => $value) {
+            if($key == 'password') echo "\t $key\t-> $value \n";
+            else echo "\t $key\t\t-> $value \n";
+        }
+
+        $confirm = $bot->ask('Confirm this configuration [Y/n]','y',['y','n']);
+        if ($confirm == 'y'){
+            try{
+                $bot->db_connect($db_type, $options);
+                break;
+            }catch(Exception $e){
+                echo "\n[!] Unable to connect, restart configuration process...\n\n";
+            }
+            
+        }else{
+            echo "\n[!] Restarting configuration process...\n\n";
+        }
     }
-    // If we create brand new elixir instance
-    else{
-        $encoding = 'True';
-    }
+
+    // Pre-Write files
+    $bot->write_config($db_type, $options, FALSE, null);
 }
-
-// Write config and db_config files
-$bot->write_config($db_type, $options, $encoding, $prefix);
 
 // Import LXR configuration
 require_once (__ROOT__ . 'Config/config.php');
 
 // Import db configuration
 require_once (__ROOT__ . 'Config/db_config.php');
+
+// Connect bot if needed
+if(!$bot->isConnected()){
+    try{
+        $bot->db_connect($db_mode, $db_config);
+    }catch(Exception $e){
+        echo "\n[!] Unable to connect, check db_config file...\n\n";
+        echo "[!] ".$e->getMessage();
+        exit;
+    }
+}
+
+$bot->detect();
+// Check if LXR Tables exists
+$prefix = $bot->get_prefix();
+
+if ($bot->found){
+
+    $rest = $bot->ask('Tables found, do you like to RESTIFY them [Y/n]','y',['y','n']);
+    
+    // If we want to restify databases... should not encode data
+    if ($rest == 'y') $encoding = 'FALSE';
+    // If we create brand new elixir instance
+    else $encoding = 'True';
+}else{
+    echo "\n[!] No table found, or all are restified...\n\n";
+    $encoding = ENCODING;
+}
+
+// Write final config and final db_config files
+$bot->write_config($db_mode, $db_config, $encoding, $prefix);
 
 echo "\n_____________________________________________________\n\n";
 echo "[2/3] Configuring web server.\n";
@@ -139,8 +169,8 @@ try{
 }
 
 echo "\n[+] Creating 3l1x1R website...\n";
-if (strtolower($htaccess) == 'vhost'){
-    $https = $bot->ask('Do you use HTTPS [Y/n]','y',['y','Y','n','N']);
+if ($htaccess == 'vhost'){
+    $https = $bot->ask('Do you use HTTPS [Y/n]','y',['y','n']);
     $bot->write_vhost($server, $host, $https);
 }
 else{

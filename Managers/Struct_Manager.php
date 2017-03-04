@@ -90,7 +90,7 @@ class Struct_Manager extends DB_Manager
                             'STRUCT' => $struct);
 
         try{
-            $this->driver->insertData(DB_PREFIX.'Structures', $req_params, TRUE);
+            $this->driver->insertData(DB_PREFIX.'Structures', $req_params);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1016);
         }

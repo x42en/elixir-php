@@ -30,13 +30,16 @@ Class Installer{
     private $fields;
     private $structs;
     private $is_root;
+    private $driver;
 
     public $found;
-
+    
     public function __construct(){
         $this->is_root = (0 == posix_getuid()) ? True : False;
+        $this->found = FALSE;
+
         if(!$this->is_root){
-            echo "##########################   WARNING !!   ############################\n";
+            echo "##########################   WARNING !!   #############################\n";
             echo "[!] You're not root !!\n[!] Your web server config files won't be written to disk...\n";
             echo "#######################################################################\n\n";
         }
@@ -56,14 +59,12 @@ Class Installer{
         if(class_exists($db)){
             // Initialize the proper driver
             $this->driver = new $db($params);
-
+            
             try{
                 $this->driver->loadData();
-                // If some data are already set
-                $this->detect();
             }catch(Exception $e){
                 if($e->getMessage() === "Database is empty.")
-                    $this->found = False;
+                    $this->found = FALSE;
                 else
                     throw new LxrException($e->getMessage(),1000);
             }
@@ -74,9 +75,15 @@ Class Installer{
 
     }
 
+    // Check if driver is connected
+    public function isConnected() {
+        if(empty($this->driver)) return FALSE;
+        return $this->driver->isConnected;
+    }
+
     // Return common prefix chars found
     public function get_prefix(){
-        $similar = True;
+        $similar = TRUE;
         $i = 0;
         while($similar){
             // Set found char on $i char of first table name
@@ -85,7 +92,7 @@ Class Installer{
             foreach ( $this->tables as $key => $value) {
                 if ($value[$i] == $found) continue;
                 // If one char is different break loop
-                $similar = False;
+                $similar = FALSE;
                 break;
             }
             // Check next char
@@ -99,11 +106,10 @@ Class Installer{
     }
 
     // Detect if data are set in database
-    private function detect(){
+    public function detect(){
         echo "[+] Detecting database data...\n";
         $this->tables = $this->driver->getTables();
         foreach ( $this->tables as $indice => $table) {
-            $this->found = True;
             $this->build_lxr_struct($table);
         }
     }
@@ -153,7 +159,7 @@ Class Installer{
     {
         $length = strlen($needle);
         if ($length == 0) {
-            return true;
+            return TRUE;
         }
 
         return (substr($haystack, -$length) === $needle);
@@ -163,11 +169,13 @@ Class Installer{
     private function build_lxr_struct($table){
         $struct = $this->driver->getStruct($table);
         // Detect if we are dealing with elixir tables
-        if(strpos($table, "LXR_") === 0) return False;
+        if(strpos($table, "LXR_") === 0) return FALSE;
         // Detect if table is already in elixir state
-        if(array_key_exists(TABLE_PREFIX.'RW_ACCESS', $struct)) return False;
+        if(array_key_exists(TABLE_PREFIX.'RW_ACCESS', $struct)) return FALSE;
 
         // If the table is not in Elixir format
+        $this->found = TRUE;
+        
         // Store table structure
         echo "\t - NEW structure $table...\n";
         $field = array();
@@ -209,15 +217,15 @@ Class Installer{
                 $regex = $this->fields[$name];
             }
 
-            if(strlen($regex) > 8) $regex_short = substr($regex, 0, 7).' ...';
+            if(strlen($regex) > 15) $regex_short = substr($regex, 0, 12).' ...';
             else $regex_short = $regex;
             
             echo "\t\t - Field $name ($regex_short)\n";
             // Set field structure
             $field[$name]['type'] = 'field';
-            $field[$name]['required'] = ($options['Null'] == 'NO') ? True : False;
-            $field[$name]['primary'] = ($options['Key'] == 'PRI') ? True : False;
-            $field[$name]['increment'] = ($options['Extra'] == 'auto_increment') ? True : False;
+            $field[$name]['required'] = ($options['Null'] == 'NO') ? TRUE : FALSE;
+            $field[$name]['primary'] = ($options['Key'] == 'PRI') ? TRUE : FALSE;
+            $field[$name]['increment'] = ($options['Extra'] == 'auto_increment') ? TRUE : FALSE;
 
         }
 
@@ -225,10 +233,10 @@ Class Installer{
         $this->structs[$table]['NAME'] = $table;
         $this->structs[$table]['STRUCT'] = $field;
 
-        return True;
+        return TRUE;
     }
 
-    public function write_config($db_type, $params, $encoding=False, $prefix='_'){
+    public function write_config($db_type, $params, $encoding=FALSE, $prefix='_'){
         $config = './Config/config.php';
         $db_config = './Config/db_config.php';
 
@@ -251,7 +259,7 @@ Class Installer{
             echo "[+] Database config wrote to $db_config\n";
         }
 
-        $conf = "\n\n// Define if data should be base64 encoded in database\ndefine('ENCODING', ".$encoding.");\n// Define global debug state (will return useful informations in errors if active)\ndefine('DEBUG_STATE', False);\n\n// Set global var\ndefine('DB_PREFIX', 'LXR_');\ndefine('TABLE_PREFIX', '_');\ndefine('USER_PREFIX', '".$prefix."');\n?>";
+        $conf = "\n\n// Define if data should be base64 encoded in database\ndefine('ENCODING', ".$encoding.");\n// Define global debug state (will return useful informations in errors if active)\ndefine('DEBUG_STATE', True);\n\n// Set global var\ndefine('DB_PREFIX', 'LXR_');\ndefine('TABLE_PREFIX', '_');\ndefine('USER_PREFIX', '".$prefix."');\n?>";
 
         // Backup previous config
         $previous_conf = file_get_contents($config);
@@ -274,11 +282,11 @@ Class Installer{
             echo "[+] Application config wrote to $config\n";
         }
 
-        return True;
+        return TRUE;
     }
 
-    public function write_vhost($server, $host, $https=False){
-        $port = ( $https == True ? 443 : 80 );
+    public function write_vhost($server, $host, $https='n'){
+        $port = ( $https == 'y' ? 443 : 80 );
         if($server == 'nginx'){
             $vhost = <<<EOD
 server {
@@ -372,8 +380,8 @@ EOD;
 
         if($this->is_root){
             if(file_exists($fname)){
-                $rewrite = $this->ask('An homonym vhost already exists, rewrite it [Y/n]','y',['y','Y','n','N']);
-                if ($rewrite){
+                $rewrite = $this->ask('An homonym vhost already exists, rewrite it [Y/n]','y',['y','n']);
+                if ($rewrite == 'y'){
                     $handle = fopen($fname, "w") or die("\n[!] Unable to append to file $fname!");
                 }
                 else{
@@ -440,8 +448,8 @@ EOD;
 
         if($this->is_root){
             if(file_exists($fname)){
-                $rewrite = $this->ask('An .htaccess already exists, rewrite it [Y/n]','y',['y','Y','n','N']);
-                if ($rewrite){
+                $rewrite = $this->ask('An .htaccess already exists, rewrite it [Y/n]','y',['y','n']);
+                if ($rewrite == 'y'){
                     $handle = fopen($fname, "w") or die("\n[!] Unable to append to file $fname!");
                 }
                 else{
@@ -486,10 +494,12 @@ EOD;
                 break;
             }
 
-            else if (in_array($resp, $answers)){
-                $result = $resp;
+            else if (in_array(strtolower($resp), $answers)){
+                $result = strtolower($resp);
                 break;
             }
+
+            echo '[!] Sorry invalid input...';
         }
         
         return $result;

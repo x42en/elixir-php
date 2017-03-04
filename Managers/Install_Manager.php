@@ -23,8 +23,6 @@
 *
 */
 
-require_once (__ROOT__ . 'Managers/DB_Manager.php');
-
 Class Install_Manager extends DB_Manager
 {
 	public function __construct($type, $param){
@@ -35,6 +33,9 @@ Class Install_Manager extends DB_Manager
     public function initialize(){
         
         // Add LXR_Users fields
+        $params[TABLE_PREFIX.'id']['type'] = 'id';
+        $params[TABLE_PREFIX.'id']['required'] = TRUE;
+        $params[TABLE_PREFIX.'id']['primary'] = TRUE;
         $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
         $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
         $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
@@ -78,9 +79,12 @@ Class Install_Manager extends DB_Manager
 
         // Add LXR_Groups fields
         $params = array();
+        $params[TABLE_PREFIX.'id']['type'] = 'id';
+        $params[TABLE_PREFIX.'id']['required'] = TRUE;
+        $params[TABLE_PREFIX.'id']['primary'] = TRUE;
         $params['GROUPNAME']['type'] = 'varchar';
-        $params['GROUPNAME']['required'] = TRUE;
         $params['GROUPNAME']['primary'] = TRUE;
+        $params['GROUPNAME']['required'] = TRUE;
         $params['USER_LIST']['type'] = 'text';
         $params['USER_LIST']['required'] = TRUE;
 
@@ -201,7 +205,7 @@ Class Install_Manager extends DB_Manager
         // Add default fields
         $params[TABLE_PREFIX.'id']['type'] = 'id';
         $params[TABLE_PREFIX.'id']['required'] = TRUE;
-        $params[TABLE_PREFIX.'id']['primary'] = TRUE;
+        $params[TABLE_PREFIX.'id']['unique'] = TRUE;
         $params[TABLE_PREFIX.'FLAGS']['type'] = 'system';
         $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
         $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';

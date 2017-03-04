@@ -49,7 +49,7 @@ define('LOG_LEVEL', 'notice');
 // Define if data should be base64 encoded in database
 define('ENCODING', False);
 // Define global debug state (will return useful informations in errors if active)
-define('DEBUG_STATE', False);
+define('DEBUG_STATE', True);
 
 // Set global var
 define('DB_PREFIX', 'LXR_');

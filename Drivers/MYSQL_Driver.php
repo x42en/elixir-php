@@ -33,7 +33,7 @@ Class MYSQL_Driver extends Abstract_Driver
     
     // Database var
     protected $dbTables;
-    protected $isConnected;
+    public $isConnected;
     
     //Initiate the mysql connection
     function __construct($param) {
@@ -125,27 +125,29 @@ Class MYSQL_Driver extends Abstract_Driver
     }
     
     // Create a new table
-    public function createTable($tableName, $structure, $dropFirst=false) {
+    public function createTable($tableName, $structure, $dropFirst=FALSE) {
         if ($dropFirst) $req = "DROP TABLE IF EXISTS `" . $tableName . "`;";
         else $req = '';
         
+        $increment = FALSE;
+
         // Starting query with standard values
-        $req.= "CREATE TABLE IF NOT EXISTS `" . $tableName . "` (";
+        $req .= "CREATE TABLE IF NOT EXISTS `" . $tableName . "` (";
         
         // Append user defined values to query
         foreach ($structure as $key => $opts) {
             if(!empty($opts['type'])){
                 switch ($opts['type']) {
                     case 'field':
-                        $type = 'TEXT';
+                        $type = (!empty($opts['increment']) && $opts['increment']) ? 'INT(11)' : 'TEXT';
                         break;
                     
                     case 'collection':
                         $type = 'TEXT';
                         break;
                     
-                    case 'object':
-                        $type = 'BIGINT(20)';
+                    case 'id':
+                        $type = 'VARCHAR(24)';
                         break;
                     
                     case 'int':
@@ -180,9 +182,12 @@ Class MYSQL_Driver extends Abstract_Driver
             $req.= "`" . $key . "` " . $type;
             
             if (!empty($opts['required']) && $opts['required']) $req.= " NOT NULL";
-            else $req.= " NULL";
+            else $req  .= " NULL";
             
-            if (!empty($opts['increment']) && $opts['increment']) $req.= " AUTO_INCREMENT";
+            if (!empty($opts['increment']) && $opts['increment']){
+                $req .= " AUTO_INCREMENT";
+                $increment = TRUE;
+            }
             
             // There can be complex PRIMARY key
             if (!empty($opts['primary']) && $opts['primary']) $primary[] = $key;
@@ -190,7 +195,7 @@ Class MYSQL_Driver extends Abstract_Driver
             // There can be complex UNIQUE key
             if (!empty($opts['unique']) && $opts['unique']) $unique[] = $key;
             
-            $req.= ",";
+            $req .= ",";
         }
         
         // Adding primary key(s) to query
@@ -223,7 +228,8 @@ Class MYSQL_Driver extends Abstract_Driver
         }
         
         // End query with standard params
-        $req.= ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
+        $req .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        if($increment) $req .= " AUTO_INCREMENT=1";
         
         try {
             return $this->execData($req);
@@ -261,7 +267,7 @@ Class MYSQL_Driver extends Abstract_Driver
     
     // Add a column to a table
     public function addColumn($table, $column, $params=null) {
-        $sql = "ALTER TABLE `" . $table . "` ADD ";
+        $sql = "ALTER TABLE `" . $table . "` ADD COLUMN ";
         
         if(!empty($params['type'])){
             switch ($params['type']) {
@@ -306,14 +312,17 @@ Class MYSQL_Driver extends Abstract_Driver
             $type = 'TEXT';
         }
         
-        $sql.= "`" . $column . "` " . $type;
+        $sql .= "`" . $column . "` " . $type;
 
+        // add default mysql values
+        $sql .= " CHARACTER SET utf8 COLLATE utf8_general_ci";
+        
         // Add required flag if needed
-        if (!empty($params['required']) && $params['required']) $sql.= " NOT NULL";
-        else $sql.= " NULL";
+        if (!empty($params['required']) && $params['required']) $sql .= " NOT NULL";
+        else $sql .= " NULL";
 
         // Column can be auto-increment
-        if (!empty($params['increment']) && $params['increment']) $sql.= " AUTO_INCREMENT";
+        if (!empty($params['increment']) && $params['increment']) $sql .= " AUTO_INCREMENT";
             
         // Column can be unique
         if (!empty($params['unique']) && $params['unique']) $sql .= " UNIQUE";
@@ -321,9 +330,8 @@ Class MYSQL_Driver extends Abstract_Driver
         // Column can be primary
         if (!empty($params['primary']) && $params['primary']) $sql .= " PRIMARY KEY";
         
-        // add default mysql values
-        $sql .= "CHARACTER SET utf8 COLLATE utf8_general_ci";
-        
+        if (!empty($params['index']) && $params['index']) $sql .= ", ADD INDEX (" . $column . ")";
+
         // Execute query against DB
         try {
             return $this->execData($sql);
@@ -338,7 +346,7 @@ Class MYSQL_Driver extends Abstract_Driver
         $sql = "ALTER TABLE `" . $table . "` CHANGE `" . $oldColumn . "` `" . $newColumn . "` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci";
         
         if (!empty($params['required']) && $params['required']) $sql.= " NOT NULL";
-        else $sql.= " NULL";
+        else $sql .= " NULL";
         
         // Execute query against DB
         try {
@@ -407,9 +415,6 @@ Class MYSQL_Driver extends Abstract_Driver
         // Write query
         $query = "INSERT INTO `" . $table . "` (";
         $end_query = ") VALUES(";
-        
-        // Artifically add id
-        if(empty($params[TABLE_PREFIX.'id'])) $params[TABLE_PREFIX.'id'] = getLxrId();
         
         // Parse params array
         foreach ($params as $key => $value) {
@@ -649,7 +654,7 @@ Class MYSQL_Driver extends Abstract_Driver
     private function execData($query) {
 
         // Display SQL Query when debug mode
-        if(DEBUG_STATE) echo "SQL run: ".$query."\n";
+        if(DEBUG_STATE) echo "[!] SQL exec:\n".$query."\n\n";
         
         try {
             
