@@ -273,8 +273,8 @@ Class MYSQL_Driver extends Abstract_Driver
                     $type = 'TEXT';
                     break;
                 
-                case 'object':
-                    $type = 'BIGINT(20)';
+                case 'id':
+                    $type = 'VARCHAR(24)';
                     break;
                 
                 case 'int':
@@ -407,6 +407,9 @@ Class MYSQL_Driver extends Abstract_Driver
         // Write query
         $query = "INSERT INTO `" . $table . "` (";
         $end_query = ") VALUES(";
+        
+        // Artifically add id
+        if(empty($params[TABLE_PREFIX.'id'])) $params[TABLE_PREFIX.'id'] = getLxrId();
         
         // Parse params array
         foreach ($params as $key => $value) {

@@ -96,7 +96,7 @@ class Flag_Manager extends DB_Manager
     public function getUnindexIDList($objectType, $flag){
         
         $table = USER_PREFIX.$objectType;
-        $field = array("_id");
+        $field = array(TABLE_PREFIX."id");
         $where = array("FLAGS" => $flag);
 
         try{
@@ -105,11 +105,11 @@ class Flag_Manager extends DB_Manager
             throw new LxrException($e->getMessage(),1050);
         }
 
-        if(!is_array($tmp) || empty($tmp[0]['_id']) || $tmp[0]['_id'] === "NULL")
+        if(!is_array($tmp) || empty($tmp[0][TABLE_PREFIX.'id']) || $tmp[0][TABLE_PREFIX.'id'] === "NULL")
             return null;
         
         foreach ($tmp as $key => $value) {
-            $result[$key] = (int)$value['_id'];
+            $result[$key] = (int)$value[TABLE_PREFIX.'id'];
         }
 
         return $result;
@@ -120,7 +120,7 @@ class Flag_Manager extends DB_Manager
     public function getFlagByID($objectType, $id){
         $table = USER_PREFIX.$objectType;
         $field = array("FLAGS");
-        $where = array('_id' => $id);
+        $where = array(TABLE_PREFIX.'id' => $id);
 
         try{
             $result = $this->driver->selectData($table, $field, $where, 1);
@@ -213,7 +213,7 @@ class Flag_Manager extends DB_Manager
         $data['FLAGS'] = array2Flag($flags);
         
         // Set the where condition
-        $where['_id'] = $id;
+        $where[TABLE_PREFIX.'id'] = $id;
 
         // Execute the update query
         try{
@@ -239,7 +239,7 @@ class Flag_Manager extends DB_Manager
         
         $data['FLAGS'] = array2Flag($flag_list);
 
-        $where['_id'] = $id;
+        $where[TABLE_PREFIX.'id'] = $id;
         
         try{
             return $this->driver->updateData($table, $data, $where);

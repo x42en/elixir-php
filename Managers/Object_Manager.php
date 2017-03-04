@@ -101,7 +101,7 @@ Class Object_Manager extends DB_Manager
     // Return all ID entries of a certain type
     public function getObjectListByType($objectType, $count=0){
         $table = USER_PREFIX.$objectType;
-        $field = array ('_id');
+        $field = array (TABLE_PREFIX.'id');
 
         try{
             $objects = $this->driver->selectData($table, $field, null, $count);
@@ -113,7 +113,7 @@ Class Object_Manager extends DB_Manager
             return NULL;
 
         foreach ($objects as $key => $value) {
-            $id_list[] = $value['_id'];
+            $id_list[] = $value[TABLE_PREFIX.'id'];
         }
 
         return $id_list;
@@ -128,7 +128,7 @@ Class Object_Manager extends DB_Manager
             $field = array();
         }
         // Add the _id field
-        $field[] = '_id';
+        $field[] = TABLE_PREFIX.'id';
 
         // Adapt key selector for DB
         $selector = array_change_key_case($selector, CASE_LOWER);
@@ -144,7 +144,7 @@ Class Object_Manager extends DB_Manager
             return NULL;
 
         foreach ($objects as $key => $value) {
-            $id_list[] = $value['_id'];
+            $id_list[] = $value[TABLE_PREFIX.'id'];
         }
 
         return $id_list;
@@ -155,7 +155,7 @@ Class Object_Manager extends DB_Manager
         
         $table = USER_PREFIX.$objectType;
         $field = null;
-        $where = array("_id" => $id);
+        $where = array(TABLE_PREFIX."id" => $id);
 
         try{
             $result = $this->driver->selectData($table, $field, $where);
@@ -188,7 +188,7 @@ Class Object_Manager extends DB_Manager
     public function updateObject($objectName, $id, $data){
         // Add an entry in the object table
         $table = USER_PREFIX.$objectName;
-        $where = array("_id" => $id);
+        $where = array(TABLE_PREFIX."id" => $id);
         try{
             return $this->driver->updateData($table, $data, $where);
         }catch(Exception $e){
@@ -201,7 +201,7 @@ Class Object_Manager extends DB_Manager
     public function deleteObject($objectName, $id){
         // Add an entry in the object table
         $table = USER_PREFIX.$objectName;
-        $where = array("_id" => $id);
+        $where = array(TABLE_PREFIX."id" => $id);
         try{
             return $this->driver->deleteData($table, $where);
         }catch(Exception $e){

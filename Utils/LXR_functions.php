@@ -148,6 +148,20 @@ function printObjectIsValid($result) {
     return TRUE;
 }
 
+// Build a compatible MongoDB ID
+function getLxrId() {
+    // Get first 4 bytes from timestamp
+    $id = substr(hex2bin(time()), 0, 4);
+    // Get first 3bytes of md5 from hostname
+    $id .= substr(hex2bin(md5(gethostname())), 0, 3);
+    // Get first 2 bytes from 
+    $id .= substr(hex2bin(getmypid()), 0, 2);
+    // Generate 3 random bytes
+    $id .= substr(hex2bin(mt_rand()), 0, 3);
+
+    return $id;
+}
+
 function is_assoc($var) {
     return is_array($var) && array_diff_key($var,array_keys(array_keys($var)));
 }

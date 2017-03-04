@@ -27,6 +27,7 @@
 define('__ROOT__', "./");
 define('__VERSION__','0.1.0');
 
+require_once (__ROOT__ . 'Managers/Install_Manager.php');
 require_once (__ROOT__ . 'Utils/LXR_Installer.php');
 
 $options = array();

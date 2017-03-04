@@ -35,10 +35,10 @@ Class Install_Manager extends DB_Manager
     public function initialize(){
         
         // Add LXR_Users fields
-        $params['ACCESS']['type'] = 'system';
-        $params['ACCESS']['required'] = FALSE;
-        $params['RW_ACCESS']['type'] = 'system';
-        $params['RW_ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
         $params['USERNAME']['type'] = 'varchar';
         $params['USERNAME']['required'] = TRUE;
         $params['USERNAME']['primary'] = TRUE;
@@ -54,10 +54,10 @@ Class Install_Manager extends DB_Manager
 
         // Add LXR_Errors fields
         $params = array();
-        $params['ACCESS']['type'] = 'system';
-        $params['ACCESS']['required'] = FALSE;
-        $params['RW_ACCESS']['type'] = 'system';
-        $params['RW_ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
         $params['CODE']['type'] = 'int';
         $params['CODE']['required'] = TRUE;
         $params['CODE']['required'] = TRUE;
@@ -93,10 +93,10 @@ Class Install_Manager extends DB_Manager
 
         // Add LXR_Fields fields
         $params = array();
-        $params['ACCESS']['type'] = 'system';
-        $params['ACCESS']['required'] = FALSE;
-        $params['RW_ACCESS']['type'] = 'system';
-        $params['RW_ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
         $params['NAME']['type'] = 'varchar';
         $params['NAME']['required'] = TRUE;
         $params['NAME']['primary'] = TRUE;
@@ -114,10 +114,10 @@ Class Install_Manager extends DB_Manager
 
         // Add LXR_Structures fields
         $params = array();
-        $params['ACCESS']['type'] = 'system';
-        $params['ACCESS']['required'] = FALSE;
-        $params['RW_ACCESS']['type'] = 'system';
-        $params['RW_ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
         $params['NAME']['type'] = 'varchar';
         $params['NAME']['required'] = TRUE;
         $params['NAME']['primary'] = TRUE;
@@ -135,17 +135,17 @@ Class Install_Manager extends DB_Manager
 
         // Add LXR_Flags fields
         $params = array();
-        $params['ACCESS']['type'] = 'system';
-        $params['ACCESS']['required'] = FALSE;
-        $params['RW_ACCESS']['type'] = 'system';
-        $params['RW_ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
         $params['FLAG']['type'] = 'varchar';
         $params['FLAG']['required'] = TRUE;
         $params['FLAG']['primary'] = TRUE;
         $params['TYPE']['type'] = 'varchar';
         $params['TYPE']['required'] = TRUE;
         $params['TYPE']['primary'] = TRUE;
-        $params['OBJECT_ID']['type'] = 'object';
+        $params['OBJECT_ID']['type'] = 'id';
         $params['OBJECT_ID']['required'] = TRUE;
         $params['OBJECT_ID']['primary'] = TRUE;
         
@@ -158,10 +158,10 @@ Class Install_Manager extends DB_Manager
 
         // Add LXR_Views fields
         $params = array();
-        $params['ACCESS']['type'] = 'system';
-        $params['ACCESS']['required'] = FALSE;
-        $params['RW_ACCESS']['type'] = 'system';
-        $params['RW_ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
+        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
         $params['OBJECT']['type'] = 'varchar';
         $params['OBJECT']['required'] = TRUE;
         $params['OBJECT']['primary'] = TRUE;
@@ -199,13 +199,12 @@ Class Install_Manager extends DB_Manager
     public function lxrify($table){
 
         // Add default fields
-        $params['_id']['type'] = 'object';
-        $params['_id']['required'] = TRUE;
-        $params['_id']['increment'] = TRUE;
-        $params['_id']['primary'] = TRUE;
-        $params['FLAGS']['type'] = 'system';
-        $params['ACCESS']['type'] = 'system';
-        $params['RW_ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'id']['type'] = 'id';
+        $params[TABLE_PREFIX.'id']['required'] = TRUE;
+        $params[TABLE_PREFIX.'id']['primary'] = TRUE;
+        $params[TABLE_PREFIX.'FLAGS']['type'] = 'system';
+        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
 
         // Append user defined values to query
         foreach ($params as $key => $opts) {
@@ -257,15 +256,6 @@ Class Install_Manager extends DB_Manager
 
         // If we're really creating the table (not restifyng...)
         if($brandNew){
-            // Add default fields
-            $params['_id']['type'] = 'system';
-            $params['_id']['required'] = TRUE;
-            $params['_id']['increment'] = TRUE;
-            $params['_id']['primary'] = TRUE;
-            $params['FLAGS']['type'] = 'system';
-            $params['ACCESS']['type'] = 'system';
-            $params['RW_ACCESS']['type'] = 'system';
-
             // Append user defined values to query
             foreach ($structure as $key => $opts) {
                 // Skip system defined fields
@@ -280,14 +270,12 @@ Class Install_Manager extends DB_Manager
                 throw new LxrException($e->getMessage(),1017);
             }
         }
-        else{
-            try{
-
-            }catch(Exception $e){
-                throw new LxrException($e->getMessage(), 1018);
-                
-            }
+        
+        // Now table exists, lxrify it ;)
+        try{
             $this->lxrify(USER_PREFIX.$structName);
+        }catch(Exception $e){
+            throw new LxrException($e->getMessage(), 1018);
         }
 
         return True;

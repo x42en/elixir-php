@@ -96,13 +96,12 @@ class Struct_Manager extends DB_Manager
         }
 
         // Add default fields
-        $params['_id']['type'] = 'system';
-        $params['_id']['required'] = TRUE;
-        $params['_id']['increment'] = TRUE;
-        $params['_id']['primary'] = TRUE;
-        $params['FLAGS']['type'] = 'system';
-        $params['ACCESS']['type'] = 'system';
-        $params['RW_ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'id']['type'] = 'id';
+        $params[TABLE_PREFIX.'id']['required'] = TRUE;
+        $params[TABLE_PREFIX.'id']['primary'] = TRUE;
+        $params[TABLE_PREFIX.'FLAGS']['type'] = 'system';
+        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
+        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
 
         // Append user defined values to query
         foreach ($structure as $key => $opts) {

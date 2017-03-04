@@ -53,5 +53,6 @@ define('DEBUG_STATE', False);
 
 // Set global var
 define('DB_PREFIX', 'LXR_');
+define('TABLE_PREFIX', '_');
 define('USER_PREFIX', '');
 ?>

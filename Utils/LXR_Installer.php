@@ -23,7 +23,6 @@
 *
 */
 
-require_once (__ROOT__ . 'Managers/Install_Manager.php');
 
 Class Installer{
     
@@ -166,7 +165,7 @@ Class Installer{
         // Detect if we are dealing with elixir tables
         if(strpos($table, "LXR_") === 0) return False;
         // Detect if table is already in elixir state
-        if(array_key_exists('RW_ACCESS', $struct)) return False;
+        if(array_key_exists(TABLE_PREFIX.'RW_ACCESS', $struct)) return False;
 
         // If the table is not in Elixir format
         // Store table structure
@@ -252,7 +251,7 @@ Class Installer{
             echo "[+] Database config wrote to $db_config\n";
         }
 
-        $conf = "\n\n// Define if data should be base64 encoded in database\ndefine('ENCODING', ".$encoding.");\n// Define global debug state (will return useful informations in errors if active)\ndefine('DEBUG_STATE', False);\n\n// Set global var\ndefine('DB_PREFIX', 'LXR_');\ndefine('USER_PREFIX', '".$prefix."');\n?>";
+        $conf = "\n\n// Define if data should be base64 encoded in database\ndefine('ENCODING', ".$encoding.");\n// Define global debug state (will return useful informations in errors if active)\ndefine('DEBUG_STATE', False);\n\n// Set global var\ndefine('DB_PREFIX', 'LXR_');\ndefine('TABLE_PREFIX', '_');\ndefine('USER_PREFIX', '".$prefix."');\n?>";
 
         // Backup previous config
         $previous_conf = file_get_contents($config);
