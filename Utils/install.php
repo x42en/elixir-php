@@ -27,9 +27,9 @@
 define('__ROOT__', "./");
 define('__VERSION__','0.1.0');
 
+// Import various functions
 require_once (__ROOT__ . 'Utils/LXR_functions.php');
-require_once (__ROOT__ . 'Managers/DB_Manager.php');
-require_once (__ROOT__ . 'Managers/Install_Manager.php');
+
 require_once (__ROOT__ . 'Utils/LXR_Installer.php');
 
 $options = array();
@@ -120,6 +120,9 @@ require_once (__ROOT__ . 'Config/config.php');
 
 // Import db configuration
 require_once (__ROOT__ . 'Config/db_config.php');
+
+// Import correct format
+require_once (__ROOT__ . 'Utils/LXR_formats.php');
 
 // Connect bot if needed
 if(!$bot->isConnected()){

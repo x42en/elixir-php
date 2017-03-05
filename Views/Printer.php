@@ -41,7 +41,7 @@ class Printer{
         $result = array();
         $result['State'] = TRUE;
         $result['Type'] = $type;
-        $result['Data'] = $data;
+        if(!is_bool($data)) $result['Data'] = $data;
 
         $this->process("HTTP/1.1 200 OK", $result);
     }
@@ -56,13 +56,16 @@ class Printer{
             $result['State'] = TRUE;
             $result['Data'] = [];
         }
+        else if($error->getCode() == 1){
+            $result['State'] = TRUE;
+            $result['Code'] = $error->getCode();
+            if (defined('DEBUG_STATE') && DEBUG_STATE) $result['Message'] = $error->getMessage();
+        }
         else{
             $result['State'] = FALSE;
-            if (defined('DEBUG_STATE') && DEBUG_STATE) $result['Message'] = $error->getMessage();
             $result['Code'] = $error->getCode();
+            if (defined('DEBUG_STATE') && DEBUG_STATE) $result['Message'] = $error->getMessage();
         }
-        
-        // if($this->format === 'html') $result = $error;
         
         $this->process("HTTP/1.1 200 OK", $result);
     }
@@ -72,11 +75,10 @@ class Printer{
             $result['Debug'] = TRUE;
 
         header($header);
+
         // Set Cors wide open (overwrite nginx troubles on this...)
         header('Access-Control-Allow-Origin: *');
-        // header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-        // header('Access-Control-Allow-Headers');
 
         switch ($this->format) {
             case 'json':

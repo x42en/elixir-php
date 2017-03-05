@@ -23,9 +23,6 @@
 *
 */
 
-
-define('__ROOT__', "./");
-
 // Parse and load existing classes
 spl_autoload_register('apiAutoload');
 function apiAutoload($classname) {
@@ -61,6 +58,7 @@ require_once (__ROOT__ . 'Utils/LXR_functions.php');
 
 // Import composer functions
 require_once (__ROOT__ . 'vendor/autoload.php');
+
 
 // Initialize logger if log isset
 if(defined('LOG_DIR') && !empty(LOG_DIR)){

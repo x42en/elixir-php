@@ -25,17 +25,18 @@
 
 use PHPUnit\Framework\TestCase;
 
-class ErrorTest extends TestCase
+class StructTest extends TestCase
 {
     protected $client;
-    protected $error;
+    protected $structure;
 
-    // Instantiate bot and Error example object
+    // Instantiate bot and Structure example object
     protected function setUp()
     {
         $this->client = new GuzzleHttp\Client([ 'base_uri' => __ROOT_URL__ ]);
-        $this->error = ['CODE' => 4242, 'MESSAGE' => 'The ultimate error', 'LANG' => 'en'];
-        $this->type = 'Error';
+        $struct = json_encode(array('albums_id'=> array("type"=>'field','required'=>False,'default'=>null)));
+        $this->structure = ['NAME'=>'TEST','STRUCT' => $struct, 'DESCRIPTION' => 'Test structure'];
+        $this->type = 'Struct';
     }
 
     private function valid_request($method, $uri, $params=NULL, $hasResult=FALSE){
@@ -45,7 +46,7 @@ class ErrorTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         $data = json_decode($response->getBody(), TRUE);
-        
+        if($method == 'post') echo $response->getBody();
         $this->assertArrayHasKey('State', $data);
         $this->assertEquals(TRUE, $data['State']);
         $this->assertArrayHasKey('Type', $data);
@@ -59,39 +60,41 @@ class ErrorTest extends TestCase
         return $data;
     }
 
-    // Check Error listing
-    public function testGet_Error() {
-        $this->valid_request('get','/error',NULL,TRUE);
+    // Check Structure listing
+    public function testGet_Structure() {
+        $this->valid_request('get','/struct',NULL,TRUE);
     }
 
-    // Check Error addition
+    // Check Structure addition
     /**
-     * @depends testGet_Error
+     * @depends testGet_Structure
      */
-    public function testPost_Error() {
-        $this->valid_request('post','/error', $this->error, TRUE);
+    public function testPost_Structure() {
+        $this->valid_request('post','/struct', $this->structure, TRUE);
     }
 
-    // Check Error update
+    // Check Structure update
     /**
-     * @depends testPost_Error
+     * @depends testPost_Structure
      */
-    public function testPut_Error() {
-        $new_error = ['CODE' => 4242, 'MESSAGE' => 'THE Error', 'LANG' => 'en'];
-        $data = $this->valid_request('put','/error/4242', $new_error, TRUE);
-
-        $this->assertEquals($new_error, $data['Data']);
-    }
-
-    // Check Error deletion
-    /**
-     * @depends testPut_Error
-     */
-    public function testDelete_Error() {
-        $this->valid_request('delete','/error/4242');
+    public function testPut_Structure() {
+        $struct = json_encode(array('photos_id'=> array("type"=>'field','required'=>False,'default'=>null)));
+        $new_structure = ['NAME' => 'Modified','STRUCT' => $struct, 'DESCRIPTION' => 'Modified Test structure'];
         
-        // Check that Error tested no longer exists
-        $data = $this->valid_request('get','/error', NULL, TRUE);
+        $data = $this->valid_request('put','/struct/test', $new_struct, TRUE);
+
+        $this->assertEquals($new_structure['MODIFIED'], $data['Data']['MODIFIED']);
+    }
+
+    // Check Structure deletion
+    /**
+     * @depends testPut_Structure
+     */
+    public function testDelete_Structure() {
+        $this->valid_request('delete','/struct/test');
+        
+        // Check that field tested no longer exists
+        $data = $this->valid_request('get','/struct', NULL, TRUE);
         $this->assertArrayNotHasKey('4242', $data['Data']);
     }
 }

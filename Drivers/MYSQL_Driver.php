@@ -653,9 +653,6 @@ Class MYSQL_Driver extends Abstract_Driver
     
     private function execData($query) {
 
-        // Display SQL Query when debug mode
-        if(DEBUG_STATE) echo "[!] SQL exec:\n".$query."\n\n";
-        
         try {
             
             // Execute the query against the database

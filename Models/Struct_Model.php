@@ -39,15 +39,36 @@ class Struct_Model extends Field_Model
         }catch(Exception $err) {
             throw $err;
         }
+
+        // Import correct format
+        require_once (__ROOT__ . 'Utils/LXR_formats.php');
         
         // Add system structure to array
         $this->structure_list['OBJECT'] = array("SYSTEM" => true);
-        $this->structure_list['USER'] = array("STRUCT" => array("Access" => array("type" => "system"), "RW_Access" => array("type" => "system"), "Username" => array("type" => "system_field", "required" => true, "default" => null)), "DESCRIPTION" => "System structure for user", "SYSTEM" => true);
-        $this->structure_list['FIELD'] = array("STRUCT" => array("Access" => array("type" => "system"), "RW_Access" => array("type" => "system"), "Name" => array("type" => "system_field", "required" => true, "default" => null), "Regex" => array("type" => "system_field", "required" => true, "default" => null), "Description" => array("type" => "system_field", "required" => false, "default" => null)), "DESCRIPTION" => "System structure for field", "SYSTEM" => true);
-        $this->structure_list['ERROR'] = array("STRUCT" => array("Access" => array("type" => "system"), "RW_Access" => array("type" => "system"), "Id" => array("type" => "system"), "Code" => array("type" => "system_field", "required" => true, "default" => null), "Message" => array("type" => "system_field", "required" => true, "default" => null)), "DESCRIPTION" => "System structure for error", "SYSTEM" => true);
-        $this->structure_list['FLAG'] = array("STRUCT" => array("Access" => array("type" => "system"), "RW_Access" => array("type" => "system"), "Id" => array("type" => "system"), "Flag" => array("type" => "system_field", "required" => true, "default" => null), "Type" => array("type" => "system_field", "required" => true, "default" => null), "Id_list" => array("type" => "system_field", "required" => true, "default" => null)), "DESCRIPTION" => "System structure for flag", "SYSTEM" => true);
-        $this->structure_list['STRUCT'] = array("STRUCT" => array("Access" => array("type" => "system"), "RW_Access" => array("type" => "system"), "Id" => array("type" => "system"), "Name" => array("type" => "system_field", "required" => true, "default" => null), "Description" => array("type" => "system_field", "required" => false, "default" => null), "Privacy" => array("type" => "system_field", "required" => false, "default" => null), "Struct" => array("type" => "system_collection", "required" => true, "default" => null)), "DESCRIPTION" => "System structure for struct", "SYSTEM" => true);
-        $this->structure_list['VIEW'] = array("STRUCT" => array("Access" => array("type" => "system"), "RW_Access" => array("type" => "system"), "Object" => array("type" => "system_field", "required" => true, "default" => null), "Type" => array("type" => "system_field", "required" => true, "default" => null), "Format" => array("type" => "system_field", "required" => true, "default" => null), "Raw" => array("type" => "system_field", "required" => true, "default" => null), "Description" => array("type" => "system_field", "required" => false, "default" => null), "Mode" => array("type" => "system_field", "required" => false, "default" => null)), "DESCRIPTION" => "System structure for view", "SYSTEM" => true);
+        $this->structure_list['USER'] = array(
+            "STRUCT" => $system_user,
+            "DESCRIPTION" => "System structure for user",
+            "SYSTEM" => true);
+        $this->structure_list['FIELD'] = array(
+            "STRUCT" => $system_field,
+            "DESCRIPTION" => "System structure for field", 
+            "SYSTEM" => true);
+        $this->structure_list['ERROR'] = array(
+            "STRUCT" => $system_error,
+            "DESCRIPTION" => "System structure for error",
+            "SYSTEM" => true);
+        $this->structure_list['FLAG'] = array(
+            "STRUCT" => $system_flag,
+            "DESCRIPTION" => "System structure for flag",
+            "SYSTEM" => true);
+        $this->structure_list['STRUCT'] = array(
+            "STRUCT" => $system_struct,
+            "DESCRIPTION" => "System structure for struct",
+            "SYSTEM" => true);
+        $this->structure_list['VIEW'] = array(
+            "STRUCT" => $system_view,
+            "DESCRIPTION" => "System structure for view",
+            "SYSTEM" => true);
     }
     
     // Define if structure are set
@@ -176,10 +197,12 @@ class Struct_Model extends Field_Model
         }
         
         // Add the common structure
-        $fields['_id']['type'] = "system";
-        $fields['FLAGS']['type'] = "system";
-        $fields['ACCESS']['type'] = "system";
-        $fields['RW_ACCESS']['type'] = "system";
+        $fields[TABLE_PREFIX.'id']['type'] = "id";
+        $fields[TABLE_PREFIX.'id']['required'] = TRUE;
+        $fields[TABLE_PREFIX.'id']['unique'] = TRUE;
+        $fields[TABLE_PREFIX.'FLAGS']['type'] = "system";
+        $fields[TABLE_PREFIX.'ACCESS']['type'] = "system";
+        $fields[TABLE_PREFIX.'RW_ACCESS']['type'] = "system";
         
         
         // Merge fields found for this structure in array
@@ -207,7 +230,7 @@ class Struct_Model extends Field_Model
         // If object does not exists create it
         if (!$renamed && (empty($this->structure_list) || !array_key_exists($structName, $this->structure_list))) {
             try {
-                $this->result['_id'] = $this->lxr->newStruct($structName, $clean['DESCRIPTION'], $obj_struct);
+                $this->result[TABLE_PREFIX.'id'] = $this->lxr->newStruct($structName, $clean['DESCRIPTION'], $obj_struct);
             }
             catch(Exception $err) {
                 throw $err;
@@ -285,7 +308,7 @@ class Struct_Model extends Field_Model
                 throw $err;
             }
 
-            $this->result['_id'] = $name;
+            $this->result[TABLE_PREFIX.'id'] = $name;
         }
 
         return $this->result;

@@ -41,19 +41,15 @@ class FieldTest extends TestCase
         $this->type = 'Field';
     }
 
-    private function valid_request($method, $uri, $params=NULL, $hasResult=False){
-        if(!empty($params)){
-            $response = $this->client->$method($uri, [ 'json' => $params ]);
-        }else{
-            $response = $this->client->$method($uri);
-        }
+    private function valid_request($method, $uri, $params=NULL, $hasResult=FALSE){
+        if(!empty($params)) $response = $this->client->$method($uri, [ 'json' => $params ]);
+        else $response = $this->client->$method($uri);
         
         $this->assertEquals(200, $response->getStatusCode());
-
-        $data = json_decode($response->getBody(), True);
+        $data = json_decode($response->getBody(), TRUE);
         
         $this->assertArrayHasKey('State', $data);
-        $this->assertEquals(True, $data['State']);
+        $this->assertEquals(TRUE, $data['State']);
         $this->assertArrayHasKey('Type', $data);
         $this->assertEquals($this->type, $data['Type']);
 
@@ -61,20 +57,17 @@ class FieldTest extends TestCase
             $this->assertArrayHasKey('Data', $data);
             $this->assertInternalType('array',$data['Data']);
         }
-            
+        
         return $data;
     }
 
     private function invalid_request($method, $uri, $params=NULL){
-        if(!empty($params)){
-            $response = $this->client->$method($uri, [ 'json' => $params ]);
-        }else{
-            $response = $this->client->$method($uri);
-        }
+        if(!empty($params)) $response = $this->client->$method($uri, [ 'json' => $params ]);
+        else $response = $this->client->$method($uri);
         
         $this->assertEquals(200, $response->getStatusCode());
 
-        $data = json_decode($response->getBody(), True);
+        $data = json_decode($response->getBody(), TRUE);
         
         $this->assertArrayHasKey('State', $data);
         $this->assertEquals(False, $data['State']);
@@ -90,34 +83,34 @@ class FieldTest extends TestCase
         $this->valid_request('get','/field',NULL,TRUE);
     }
 
+    // Check field addition
     /**
      * @depends testGet_Field
      */
-    // Check field addition
     public function testPost_Field() {
         $this->valid_request('post','/field', $this->field,TRUE);
     }
 
+    // Check field value is valid
     /**
      * @depends testPost_Field
      */
-    // Check field value is valid
     public function testGet_ValidField() {
         $this->valid_request('get','/field/test/123');
     }
 
+    // Check field value is invalid
     /**
      * @depends testPost_Field
      */
-    // Check field value is invalid
     public function testGet_InvalidField() {
         $this->invalid_request('get','/field/test/abc');
     }
 
+    // Check field update
     /**
      * @depends testPost_Field
      */
-    // Check field update
     public function testPut_Field() {
         $new_field = ['NAME' => 'Modified', 'REGEX' => '~^[0-9]{5}$~', 'DESCRIPTION' => 'Test field modified'];
         $data = $this->valid_request('put','/field/test', $new_field, TRUE);
@@ -128,7 +121,7 @@ class FieldTest extends TestCase
 
     // Check that a field can be registered with a named regex
     /**
-     * @depends testPost_Field
+     * @depends testPut_Field
      */
     public function testPost_NamedField() {
         $new_field = ['NAME' => 'Duplicated', 'REGEX' => 'modified', 'DESCRIPTION' => 'Test field duplicated'];
@@ -143,7 +136,7 @@ class FieldTest extends TestCase
 
     // Check field deletion
     /**
-     * @depends testPut_Field
+     * @depends testPost_NamedField
      */
     public function testDelete_Field() {
         $this->valid_request('delete','/field/modified');

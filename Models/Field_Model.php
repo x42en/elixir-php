@@ -144,13 +144,11 @@ class Field_Model extends LXR_Model
         }
         
         try {
-            $this->result = $this->lxr->updateField($newFieldName, $regex, $description);
+            return $this->lxr->updateField($newFieldName, $regex, $description);
         }
         catch(Exception $err) {
             throw $err;
         }
-        
-        return $this->result;
     }
     
     // Delete an existing field (checked by DELETE_Cleaner)
@@ -162,7 +160,6 @@ class Field_Model extends LXR_Model
         catch(Exception $err) {
             throw $err;
         }
-        
     }
 }
 ?>

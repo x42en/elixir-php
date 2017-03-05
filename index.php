@@ -23,44 +23,6 @@
 *
 */
 
-
-require_once ('./Config/config.php');
-
-$welcome = array('State' => true, 'Msg' => 'Welcome.');
-if(defined('DEBUG_STATE') && DEBUG_STATE)
-	$welcome['Debug'] = TRUE;
-
-$format = DEFAULT_FORMAT;
-
-if(!empty($_GET['_format']))
-	$format = strtolower($_GET['_format']);
-
-header("HTTP/1.1 200 OK");
-
-switch ($format) {
-	case 'html':
-		header('Content-type: text/html; charset=UTF-8');
-		$output = '<html><head><title>3l1x1r - The essence of object</title></head><body>';
-		$output .= "<div class='header'><div class='logo'><img src=''/>3l1x1r [e.li.ksiʁ]</div><div class='sublogo'>... The essence of Object</div></div><hr/>";
-		$output .= "<div class'container'><h1>" . $welcome['Msg'] . "</h1></div>";
-		$output .= '</body></html>';
-		echo $output;
-		break;
-
-	case 'xml':
-		header('Content-type: application/xml; charset=UTF-8');
-        echo wddx_serialize_value($welcome);
-        break;
-
-    case 'txt':
-    	header('Content-type: text/plain; charset=UTF-8');
-        print_r($welcome);
-        break;
-	
-	default:
-		header('Content-type: application/json; charset=UTF-8');
-		echo json_encode($welcome);
-		break;
-}
-
+echo '<h1 style="text-align: center">You should NOT be here!</h1>';
+exit(1);
 ?>

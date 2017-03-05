@@ -1,0 +1,9 @@
+<phpunit bootstrap="vendor/autoload.php">
+  <testsuites>
+    <testsuite name="elixir">
+        <file>Tests/FieldTest.php</file>
+        <file>Tests/ErrorTest.php</file>
+        <file>Tests/StructureTest.php</file>
+    </testsuite>
+  </testsuites>
+</phpunit>

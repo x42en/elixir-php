@@ -106,6 +106,8 @@ class PUT_Cleaner extends GENERIC_Cleaner
                     throw new LxrException('Empty or invalid name.', 21);
                 }
                 
+                $request->ressource = strtoupper($request->ressource);
+                
                 // Original name must exists
                 if (!$handle->structExists($request->ressource)){
                     throw new LxrException('Unknown structure.', 22);

@@ -90,6 +90,7 @@ class Field_Controller extends LXR_Controller
         try{
             // Check request params against action type
             parent::DELETEisClean($request);
+
             $result = $this->handle->deleteField($request->ressource);
         }catch(Exception $err){
             throw $err;

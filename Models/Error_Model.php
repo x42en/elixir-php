@@ -129,7 +129,7 @@ class Error_Model extends LXR_Model
         try {
             // Set POST OK
             $this->lxr->newError($errorCode, $message, $lang);
-            $this->result['CODE'] = $code;
+            $this->result['CODE'] = $errorCode;
             $this->result['LANG'] = $lang;
         }
         catch(Exception $err) {

@@ -32,155 +32,51 @@ Class Install_Manager extends DB_Manager
     // Initialize the minimal DB structure
     public function initialize(){
         
-        // Add LXR_Users fields
-        $params[TABLE_PREFIX.'id']['type'] = 'id';
-        $params[TABLE_PREFIX.'id']['required'] = TRUE;
-        $params[TABLE_PREFIX.'id']['primary'] = TRUE;
-        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
-        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
-        $params['USERNAME']['type'] = 'varchar';
-        $params['USERNAME']['required'] = TRUE;
-        $params['USERNAME']['primary'] = TRUE;
-        $params['DESCRIPTION']['type'] = 'text';
-        $params['DESCRIPTION']['required'] = FALSE;
-
         // Create table with correct params
         try{
-            $this->driver->createTable(DB_PREFIX.'Users', $params, TRUE);
+            $this->driver->createTable(DB_PREFIX.'Users', $system_user, TRUE);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1001);
         }
 
-        // Add LXR_Errors fields
-        $params = array();
-        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
-        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
-        $params['CODE']['type'] = 'int';
-        $params['CODE']['required'] = TRUE;
-        $params['CODE']['required'] = TRUE;
-        $params['CODE']['primary'] = TRUE;
-        $params['MESSAGE']['type'] = 'varchar';
-        $params['MESSAGE']['required'] = TRUE;
-        $params['MESSAGE']['primary'] = TRUE;
-        $params['LANG']['type'] = 'vchar';
-        $params['LANG']['required'] = TRUE;
-        $params['LANG']['primary'] = TRUE;
-        
         // Create table with correct params
         try{
-            $this->driver->createTable(DB_PREFIX.'Errors', $params, TRUE);
+            $this->driver->createTable(DB_PREFIX.'Errors', $system_error, TRUE);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1002);
         }
 
-        // Add LXR_Groups fields
-        $params = array();
-        $params[TABLE_PREFIX.'id']['type'] = 'id';
-        $params[TABLE_PREFIX.'id']['required'] = TRUE;
-        $params[TABLE_PREFIX.'id']['primary'] = TRUE;
-        $params['GROUPNAME']['type'] = 'varchar';
-        $params['GROUPNAME']['primary'] = TRUE;
-        $params['GROUPNAME']['required'] = TRUE;
-        $params['USER_LIST']['type'] = 'text';
-        $params['USER_LIST']['required'] = TRUE;
-
         // Create table with correct params
         try{
-            $this->driver->createTable(DB_PREFIX.'Groups', $params, TRUE);
+            $this->driver->createTable(DB_PREFIX.'Groups', $system_group, TRUE);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1003);
         }
 
-        // Add LXR_Fields fields
-        $params = array();
-        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
-        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
-        $params['NAME']['type'] = 'varchar';
-        $params['NAME']['required'] = TRUE;
-        $params['NAME']['primary'] = TRUE;
-        $params['REGEX']['type'] = 'text';
-        $params['REGEX']['required'] = TRUE;
-        $params['DESCRIPTION']['type'] = 'text';
-        $params['DESCRIPTION']['required'] = FALSE;
-
         // Create table with correct params
         try{
-            $this->driver->createTable(DB_PREFIX.'Fields', $params, TRUE);
+            $this->driver->createTable(DB_PREFIX.'Fields', $system_field, TRUE);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1004);
         }
 
-        // Add LXR_Structures fields
-        $params = array();
-        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
-        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
-        $params['NAME']['type'] = 'varchar';
-        $params['NAME']['required'] = TRUE;
-        $params['NAME']['primary'] = TRUE;
-        $params['STRUCT']['type'] = 'text';
-        $params['STRUCT']['required'] = TRUE;
-        $params['DESCRIPTION']['type'] = 'text';
-        $params['DESCRIPTION']['required'] = FALSE;
-
         // Create table with correct params
         try{
-            $this->driver->createTable(DB_PREFIX.'Structures', $params, TRUE);
+            $this->driver->createTable(DB_PREFIX.'Structures', $system_struct, TRUE);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1005);
         }
 
-        // Add LXR_Flags fields
-        $params = array();
-        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
-        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
-        $params['FLAG']['type'] = 'varchar';
-        $params['FLAG']['required'] = TRUE;
-        $params['FLAG']['primary'] = TRUE;
-        $params['TYPE']['type'] = 'varchar';
-        $params['TYPE']['required'] = TRUE;
-        $params['TYPE']['primary'] = TRUE;
-        $params['OBJECT_ID']['type'] = 'id';
-        $params['OBJECT_ID']['required'] = TRUE;
-        $params['OBJECT_ID']['primary'] = TRUE;
-        
         // Create table with correct params
         try{
-            $this->driver->createTable(DB_PREFIX.'Flags', $params, TRUE);
+            $this->driver->createTable(DB_PREFIX.'Flags', $system_flag, TRUE);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1006);
         }
 
-        // Add LXR_Views fields
-        $params = array();
-        $params[TABLE_PREFIX.'ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
-        $params[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
-        $params[TABLE_PREFIX.'RW_ACCESS']['required'] = FALSE;
-        $params['OBJECT']['type'] = 'varchar';
-        $params['OBJECT']['required'] = TRUE;
-        $params['OBJECT']['primary'] = TRUE;
-        $params['TYPE']['type'] = 'vchar';
-        $params['TYPE']['required'] = TRUE;
-        $params['TYPE']['primary'] = TRUE;
-        $params['FORMAT']['type'] = 'vchar';
-        $params['FORMAT']['required'] = TRUE;
-        $params['FORMAT']['primary'] = TRUE;
-        $params['RAW']['type'] = 'field';
-        $params['RAW']['required'] = TRUE;
-        
         // Create table with correct params
         try{
-            $this->driver->createTable(DB_PREFIX.'Views', $params, TRUE);
+            $this->driver->createTable(DB_PREFIX.'Views', $system_view, TRUE);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1007);
         }

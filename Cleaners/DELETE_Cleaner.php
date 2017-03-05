@@ -66,6 +66,9 @@ class DELETE_Cleaner extends GENERIC_Cleaner
                 if (!isValidName($request->ressource)){
                     throw new LxrException('Invalid structure name.', 21);
                 }
+                
+                $request->ressource = strtoupper($request->ressource);
+                
                 if (!$handle->structExists($request->ressource)){
                     throw new LxrException('Unknown structure.', 22);
                 }

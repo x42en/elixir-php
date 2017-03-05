@@ -24,6 +24,9 @@
 */
 
 
+require_once (__ROOT__ . 'Managers/DB_Manager.php');
+require_once (__ROOT__ . 'Managers/Install_Manager.php');
+
 Class Installer{
     
     private $connector;

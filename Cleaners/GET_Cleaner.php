@@ -77,6 +77,8 @@ class GET_Cleaner extends GENERIC_Cleaner
                 if (!empty($request->flags)) {
                     throw new LxrException('Structure can NOT have flag.', 21);
                 }
+
+                $request->ressource = strtoupper($request->ressource);
                 
                 // If struct name is set
                 if (!empty($request->ressource)) {
@@ -88,7 +90,7 @@ class GET_Cleaner extends GENERIC_Cleaner
                         
                     }
                     if (!$handle->structExists($request->ressource)){
-                        throw new LxrException('Invalid structure name.', 24);
+                        throw new LxrException('Unknown structure name.', 24);
                     }
                 }
                 

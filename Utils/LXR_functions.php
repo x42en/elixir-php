@@ -50,103 +50,99 @@ function isLogged() {
     return TRUE;
 }
 
-function printResult($result) {
+// function printResult($result) {
     
-    // Check if object exists
-    if(!printObjectIsValid($result)){
-        $result = new stdClass();
-        $result->State = FALSE;
-        $result->Code = 500;
-        $result->Type = 'System';
-        $result->Format = 'json';
-        $result->Msg = 'Received unknown object';
+//     // Check if object exists
+//     if(!printObjectIsValid($result)){
+//         $result = new stdClass();
+//         $result->State = FALSE;
+//         $result->Code = 500;
+//         $result->Type = 'System';
+//         $result->Format = 'json';
+//         $result->Msg = 'Received unknown object';
 
-        return printResult($result);
-    }
+//         return printResult($result);
+//     }
 
-    // first send HTTP header
-    // if($result->Code > 300)
-    //  header("HTTP/1.1 400 Bad Request");
-    // else
-    //  header("HTTP/1.1 200 OK");
-    header("HTTP/1.1 200 OK");
+//     // first send HTTP header
+//     header("HTTP/1.1 200 OK");
     
-    // Then send content-Type
-    $content_type = 'Content-Type: ';
-    switch (strtolower($result->Format)) {
-        case 'json':
-            $content_type .= 'application/json';
-            unset($result->Format);
-            $data = json_encode($result);
-            break;
+//     // Then send content-Type
+//     $content_type = 'Content-Type: ';
+//     switch (strtolower($result->Format)) {
+//         case 'json':
+//             $content_type .= 'application/json';
+//             unset($result->Format);
+//             $data = json_encode($result);
+//             break;
         
-        case 'xml':
-            $content_type .= 'application/xml';
-            unset($result->Format);
-            $data = wddx_serialize_value($result);
-            break;
+//         case 'xml':
+//             $content_type .= 'application/xml';
+//             unset($result->Format);
+//             $data = wddx_serialize_value($result);
+//             break;
         
-        default:
-            $content_type .= 'text/html';
-            unset($result->Format);
-            if(!empty($result->Data)) $data = json_encode($result->Data);
-            else if($result->Code > 200) $data = "<html>\r\n<head>\r\n\t<title>Error - ".$result->Code."</title>\r\n</head>\r\n<body>\r\n\t<h1>".$result->Code." - ".$result->Msg."</h1>\r\n\t<hr/>\r\n\t<p>".htmlentities($result->Type)." error</p>\r\n</body>\r\n</html>";
-            break;
-    }
-    header($content_type.'; charset=UTF-8');
+//         default:
+//             $content_type .= 'text/html';
+//             unset($result->Format);
+//             if(!empty($result->Data)) $data = json_encode($result->Data);
+//             else if($result->Code > 200) $data = "<html>\r\n<head>\r\n\t<title>Error - ".$result->Code."</title>\r\n</head>\r\n<body>\r\n\t<h1>".$result->Code." - ".$result->Msg."</h1>\r\n\t<hr/>\r\n\t<p>".htmlentities($result->Type)." error</p>\r\n</body>\r\n</html>";
+//             break;
+//     }
+//     header($content_type.'; charset=UTF-8');
 
-    // Finally if is set, send content (double encoded, so decode once ;))
-    if(!empty($data)){
-        echo html_entity_decode($data);
-    }
-}
+//     // Finally if is set, send content (double encoded, so decode once ;))
+//     if(!empty($data)){
+//         echo html_entity_decode($data);
+//     }
+// }
 
-function print_error($logger, $error){
-    $end_line = '<br>';
-    echo $error;
-    $err_str = "Error (".$error->getCode().": ".$error->getMessage()." - $end_line";
-    $err_str .= "from file ".$error->getFile().":".$error->getLine();
-    $err_str = "\t[".$_SERVER['REMOTE_ADDR']."]\t - ".$err_str;
+// function print_error($logger, $error){
+//     $end_line = '<br>';
+//     echo $error;
+//     $err_str = "Error (".$error->getCode().": ".$error->getMessage()." - $end_line";
+//     $err_str .= "from file ".$error->getFile().":".$error->getLine();
+//     $err_str = "\t[".$_SERVER['REMOTE_ADDR']."]\t - ".$err_str;
     
-    if(empty($logger)) die($err_str);
+//     if(empty($logger)) die($err_str);
 
-    $code = intval($error->getCode());
+//     $code = intval($error->getCode());
 
-    if ($code > 7000){
-        $logger->debug($err_str);
-    }
-    else if ($code > 6000){
-        $logger->info($err_str);
-    }
-    else if ($code > 5000){
-        $logger->notice($err_str);
-    }
-    else if ($code > 4000){
-        $logger->warning($err_str);
-    }
-    else if ($code > 3000){
-        $logger->error($err_str);
-    }
-    else if ($code > 2000){
-        $logger->critical($err_str);
-    }
-    else if ($code > 1000){
-        $logger->alert($err_str);
-    }
-    else{
-        $logger->emergency($err_str);
-    }
-}
+//     if ($code > 7000){
+//         $logger->debug($err_str);
+//     }
+//     else if ($code > 6000){
+//         $logger->info($err_str);
+//     }
+//     else if ($code > 5000){
+//         $logger->notice($err_str);
+//     }
+//     else if ($code > 4000){
+//         $logger->warning($err_str);
+//     }
+//     else if ($code > 3000){
+//         $logger->error($err_str);
+//     }
+//     else if ($code > 2000){
+//         $logger->critical($err_str);
+//     }
+//     else if ($code > 1000){
+//         $logger->alert($err_str);
+//     }
+//     else{
+//         $logger->emergency($err_str);
+//     }
+// }
 
-function printObjectIsValid($result) {
-    if(!is_object($result)) return FALSE;
-    if(empty($result->Type)) return FALSE;
-    if(empty($result->State) && !is_bool($result->State)) return FALSE;
-    if(empty($result->Code) && !is_int($result->Code)) return FALSE;
-    if(empty($result->Format)) return FALSE;
+// function printObjectIsValid($result) {
+//     if(!is_object($result)) return FALSE;
+//     if(empty($result->Type)) return FALSE;
+//     if(empty($result->State) && !is_bool($result->State)) return FALSE;
+//     if(empty($result->Code) && !is_int($result->Code)) return FALSE;
+//     if(empty($result->Format)) return FALSE;
 
-    return TRUE;
-}
+//     return TRUE;
+// }
 
 // Build a compatible MongoDB ID
 function getLxrId() {

@@ -44,8 +44,7 @@ class Router{
     public $sort;
     public $infos;
     public $lang;
-    // public $id;
-
+    
     public function __construct(){
         $this->allowed_methods = array('get', 'post', 'put', 'patch', 'delete', 'options');
         $this->private_object = array('Field', 'Struct', 'View', 'Object', 'Error', 'User', 'Flag');
@@ -94,6 +93,8 @@ class Router{
         if(empty($raw['path'])) throw new LxrException('Empty Request', 914);
 
         $this->infos = explode('/', substr($raw['path'], 1));
+
+        if(empty($this->infos[0])) throw new LxrException("Welcome !", 1);
 
         try{
             $this->getLang();
