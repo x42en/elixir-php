@@ -4,7 +4,7 @@
 $system_user = array();
 $system_user[TABLE_PREFIX.'id']['type'] = 'id';
 $system_user[TABLE_PREFIX.'id']['required'] = TRUE;
-$system_user[TABLE_PREFIX.'id']['primary'] = TRUE;
+$system_user[TABLE_PREFIX.'id']['unique'] = TRUE;
 $system_user[TABLE_PREFIX.'ACCESS']['type'] = 'system';
 $system_user[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
 $system_user[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
@@ -17,6 +17,9 @@ $system_user['DESCRIPTION']['required'] = FALSE;
 
 // Add LXR_Errors fields
 $system_error = array();
+$system_error[TABLE_PREFIX.'id']['type'] = 'id';
+$system_error[TABLE_PREFIX.'id']['required'] = TRUE;
+$system_error[TABLE_PREFIX.'id']['unique'] = TRUE;
 $system_error[TABLE_PREFIX.'ACCESS']['type'] = 'system';
 $system_error[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
 $system_error[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
@@ -36,7 +39,7 @@ $system_error['LANG']['primary'] = TRUE;
 $system_group = array();
 $system_group[TABLE_PREFIX.'id']['type'] = 'id';
 $system_group[TABLE_PREFIX.'id']['required'] = TRUE;
-$system_group[TABLE_PREFIX.'id']['primary'] = TRUE;
+$system_group[TABLE_PREFIX.'id']['unique'] = TRUE;
 $system_group['GROUPNAME']['type'] = 'varchar';
 $system_group['GROUPNAME']['primary'] = TRUE;
 $system_group['GROUPNAME']['required'] = TRUE;
@@ -45,6 +48,9 @@ $system_group['USER_LIST']['required'] = TRUE;
 
 // Add LXR_Fields fields
 $system_field = array();
+$system_field[TABLE_PREFIX.'id']['type'] = 'id';
+$system_field[TABLE_PREFIX.'id']['required'] = TRUE;
+$system_field[TABLE_PREFIX.'id']['unique'] = TRUE;
 $system_field[TABLE_PREFIX.'ACCESS']['type'] = 'system';
 $system_field[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
 $system_field[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
@@ -59,6 +65,9 @@ $system_field['DESCRIPTION']['required'] = FALSE;
 
 // Add LXR_Structures fields
 $system_struct = array();
+$system_struct[TABLE_PREFIX.'id']['type'] = 'id';
+$system_struct[TABLE_PREFIX.'id']['required'] = TRUE;
+$system_struct[TABLE_PREFIX.'id']['unique'] = TRUE;
 $system_struct[TABLE_PREFIX.'ACCESS']['type'] = 'system';
 $system_struct[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
 $system_struct[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
@@ -73,6 +82,9 @@ $system_struct['DESCRIPTION']['required'] = FALSE;
 
 // Add LXR_Flags fields
 $system_flag = array();
+$system_flag[TABLE_PREFIX.'id']['type'] = 'id';
+$system_flag[TABLE_PREFIX.'id']['required'] = TRUE;
+$system_flag[TABLE_PREFIX.'id']['unique'] = TRUE;
 $system_flag[TABLE_PREFIX.'ACCESS']['type'] = 'system';
 $system_flag[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
 $system_flag[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';
@@ -89,6 +101,9 @@ $system_flag['OBJECT_ID']['primary'] = TRUE;
 
 // Add LXR_Views fields
 $system_view = array();
+$system_view[TABLE_PREFIX.'id']['type'] = 'id';
+$system_view[TABLE_PREFIX.'id']['required'] = TRUE;
+$system_view[TABLE_PREFIX.'id']['unique'] = TRUE;
 $system_view[TABLE_PREFIX.'ACCESS']['type'] = 'system';
 $system_view[TABLE_PREFIX.'ACCESS']['required'] = FALSE;
 $system_view[TABLE_PREFIX.'RW_ACCESS']['type'] = 'system';

@@ -41,7 +41,7 @@ class Printer{
         $result = array();
         $result['State'] = TRUE;
         $result['Type'] = $type;
-        if(!is_bool($data)) $result['Data'] = $data;
+        $result['Data'] = $data;
 
         $this->process("HTTP/1.1 200 OK", $result);
     }

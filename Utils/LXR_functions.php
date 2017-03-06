@@ -50,90 +50,6 @@ function isLogged() {
     return TRUE;
 }
 
-// function printResult($result) {
-    
-//     // Check if object exists
-//     if(!printObjectIsValid($result)){
-//         $result = new stdClass();
-//         $result->State = FALSE;
-//         $result->Code = 500;
-//         $result->Type = 'System';
-//         $result->Format = 'json';
-//         $result->Msg = 'Received unknown object';
-
-//         return printResult($result);
-//     }
-
-//     // first send HTTP header
-//     header("HTTP/1.1 200 OK");
-    
-//     // Then send content-Type
-//     $content_type = 'Content-Type: ';
-//     switch (strtolower($result->Format)) {
-//         case 'json':
-//             $content_type .= 'application/json';
-//             unset($result->Format);
-//             $data = json_encode($result);
-//             break;
-        
-//         case 'xml':
-//             $content_type .= 'application/xml';
-//             unset($result->Format);
-//             $data = wddx_serialize_value($result);
-//             break;
-        
-//         default:
-//             $content_type .= 'text/html';
-//             unset($result->Format);
-//             if(!empty($result->Data)) $data = json_encode($result->Data);
-//             else if($result->Code > 200) $data = "<html>\r\n<head>\r\n\t<title>Error - ".$result->Code."</title>\r\n</head>\r\n<body>\r\n\t<h1>".$result->Code." - ".$result->Msg."</h1>\r\n\t<hr/>\r\n\t<p>".htmlentities($result->Type)." error</p>\r\n</body>\r\n</html>";
-//             break;
-//     }
-//     header($content_type.'; charset=UTF-8');
-
-//     // Finally if is set, send content (double encoded, so decode once ;))
-//     if(!empty($data)){
-//         echo html_entity_decode($data);
-//     }
-// }
-
-// function print_error($logger, $error){
-//     $end_line = '<br>';
-//     echo $error;
-//     $err_str = "Error (".$error->getCode().": ".$error->getMessage()." - $end_line";
-//     $err_str .= "from file ".$error->getFile().":".$error->getLine();
-//     $err_str = "\t[".$_SERVER['REMOTE_ADDR']."]\t - ".$err_str;
-    
-//     if(empty($logger)) die($err_str);
-
-//     $code = intval($error->getCode());
-
-//     if ($code > 7000){
-//         $logger->debug($err_str);
-//     }
-//     else if ($code > 6000){
-//         $logger->info($err_str);
-//     }
-//     else if ($code > 5000){
-//         $logger->notice($err_str);
-//     }
-//     else if ($code > 4000){
-//         $logger->warning($err_str);
-//     }
-//     else if ($code > 3000){
-//         $logger->error($err_str);
-//     }
-//     else if ($code > 2000){
-//         $logger->critical($err_str);
-//     }
-//     else if ($code > 1000){
-//         $logger->alert($err_str);
-//     }
-//     else{
-//         $logger->emergency($err_str);
-//     }
-// }
-
 // function printObjectIsValid($result) {
 //     if(!is_object($result)) return FALSE;
 //     if(empty($result->Type)) return FALSE;
@@ -145,17 +61,36 @@ function isLogged() {
 // }
 
 // Build a compatible MongoDB ID
-function getLxrId() {
-    // Get first 4 bytes from timestamp
-    $id = substr(hex2bin(time()), 0, 4);
-    // Get first 3bytes of md5 from hostname
-    $id .= substr(hex2bin(md5(gethostname())), 0, 3);
-    // Get first 2 bytes from 
-    $id .= substr(hex2bin(getmypid()), 0, 2);
-    // Generate 3 random bytes
-    $id .= substr(hex2bin(mt_rand()), 0, 3);
-
-    return $id;
+// based on https://gist.github.com/alvan/9826444
+function generate_id_hex()
+{
+    static $i = 0;
+    $i OR $i = mt_rand(1, 0x7FFFFF);
+ 
+    return sprintf("%08x%06x%04x%06x",
+        /* 4-byte value representing the seconds since the Unix epoch. */
+        time() & 0xFFFFFFFF,
+ 
+        /* 3-byte machine identifier.
+         *
+         * On windows, the max length is 256. Linux doesn't have a limit, but it
+         * will fill in the first 256 chars of hostname even if the actual
+         * hostname is longer.
+         *
+         * From the GNU manual:
+         * gethostname stores the beginning of the host name in name even if the
+         * host name won't entirely fit. For some purposes, a truncated host name
+         * is good enough. If it is, you can ignore the error code.
+         *
+         * crc32 will be better than Times33. */
+        crc32(substr((string)gethostname(), 0, 256)) >> 8 & 0xFFFFFF,
+ 
+        /* 2-byte process id. */
+        getmypid() & 0xFFFF,
+ 
+        /* 3-byte counter, starting with a random value. */
+        $i = $i > 0xFFFFFE ? 1 : $i + 1
+    );
 }
 
 function is_assoc($var) {

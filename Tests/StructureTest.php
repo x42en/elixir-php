@@ -35,7 +35,7 @@ class StructTest extends TestCase
     {
         $this->client = new GuzzleHttp\Client([ 'base_uri' => __ROOT_URL__ ]);
         $struct = json_encode(array('albums_id'=> array("type"=>'field','required'=>False,'default'=>null)));
-        $this->structure = ['NAME'=>'TEST','STRUCT' => $struct, 'DESCRIPTION' => 'Test structure'];
+        $this->structure = ['name'=>'TEST','struct' => $struct, 'description' => 'Test structure'];
         $this->type = 'Struct';
     }
 
@@ -46,7 +46,7 @@ class StructTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
 
         $data = json_decode($response->getBody(), TRUE);
-        if($method == 'post') echo $response->getBody();
+        
         $this->assertArrayHasKey('State', $data);
         $this->assertEquals(TRUE, $data['State']);
         $this->assertArrayHasKey('Type', $data);
@@ -57,6 +57,23 @@ class StructTest extends TestCase
             $this->assertInternalType('array',$data['Data']);
         }
         
+        return $data;
+    }
+
+    private function invalid_request($method, $uri, $params=NULL){
+        if(!empty($params)) $response = $this->client->$method($uri, [ 'json' => $params ]);
+        else $response = $this->client->$method($uri);
+        
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $data = json_decode($response->getBody(), TRUE);
+        
+        $this->assertArrayHasKey('State', $data);
+        $this->assertEquals(False, $data['State']);
+        $this->assertArrayHasKey('Type', $data);
+        $this->assertEquals($this->type, $data['Type']);
+        $this->assertArrayHasKey('Code', $data);
+
         return $data;
     }
 
@@ -73,17 +90,25 @@ class StructTest extends TestCase
         $this->valid_request('post','/struct', $this->structure, TRUE);
     }
 
-    // Check Structure update
+    // Check duplicate Structure addition is forbidden
     /**
      * @depends testPost_Structure
+     */
+    public function testPostDuplicate_Structure() {
+        $this->invalid_request('post','/struct', $this->structure, TRUE);
+    }
+
+    // Check Structure update
+    /**
+     * @depends testPostDuplicate_Structure
      */
     public function testPut_Structure() {
         $struct = json_encode(array('photos_id'=> array("type"=>'field','required'=>False,'default'=>null)));
         $new_structure = ['NAME' => 'Modified','STRUCT' => $struct, 'DESCRIPTION' => 'Modified Test structure'];
         
-        $data = $this->valid_request('put','/struct/test', $new_struct, TRUE);
+        $data = $this->valid_request('put','/struct/test', $new_structure, TRUE);
 
-        $this->assertEquals($new_structure['MODIFIED'], $data['Data']['MODIFIED']);
+        // $this->assertEquals($new_structure['STRUCT']['MODIFIED'], $data['Data']['MODIFIED']);
     }
 
     // Check Structure deletion
@@ -91,11 +116,12 @@ class StructTest extends TestCase
      * @depends testPut_Structure
      */
     public function testDelete_Structure() {
-        $this->valid_request('delete','/struct/test');
+        $this->valid_request('delete','/struct/modified');
         
         // Check that field tested no longer exists
         $data = $this->valid_request('get','/struct', NULL, TRUE);
-        $this->assertArrayNotHasKey('4242', $data['Data']);
+        $this->assertArrayNotHasKey('test', $data['Data']);
+        $this->assertArrayNotHasKey('modified', $data['Data']);
     }
 }
 ?>

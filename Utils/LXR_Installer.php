@@ -176,6 +176,12 @@ Class Installer{
         // Detect if table is already in elixir state
         if(array_key_exists(TABLE_PREFIX.'RW_ACCESS', $struct)) return FALSE;
 
+        // Detect if table already contains id column
+        if(array_key_exists(TABLE_PREFIX.'id', $struct)){
+            echo "[!] Sorry table $table already contains a '".TABLE_PREFIX."id' column ! Please change TABLE_PREFIX in Config/config.php ...";
+            exit(1);
+        }
+
         // If the table is not in Elixir format
         $this->found = TRUE;
         
@@ -300,7 +306,7 @@ server {
     root /var/www/$host;
     
     location / {
-        rewrite ^(.*) /run.php?$1;
+        rewrite ^(.*) /index.php?$1;
     }
 
     # Does not need any icon
@@ -359,7 +365,7 @@ EOD;
 
                     RewriteCond %{REQUEST_FILENAME} !-f
                     RewriteCond %{REQUEST_FILENAME} !-d
-                    RewriteRule ^(.*)$ run.php/$1 [QSA,L]
+                    RewriteRule ^(.*)$ index.php/$1 [QSA,L]
 
                     ErrorDocument 404 404.html
                 </IfModule>

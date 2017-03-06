@@ -87,7 +87,6 @@ class GET_Cleaner extends GENERIC_Cleaner
                     }
                     if(in_array($request->ressource, $this->system_object)){
                         throw new LxrException('Forbidden structure name.', 23);
-                        
                     }
                     if (!$handle->structExists($request->ressource)){
                         throw new LxrException('Unknown structure name.', 24);
@@ -201,6 +200,9 @@ class GET_Cleaner extends GENERIC_Cleaner
                     if (!isValidName($request->ressource)){
                         throw new LxrException('Invalid name.', 71);
                     }
+                    
+                    $request->ressource = strtoupper($request->ressource);
+
                     if (!$handle->structExists($request->ressource)) {
                         throw new LxrException('Unknown object type.', 72);
                     } 

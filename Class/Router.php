@@ -94,7 +94,7 @@ class Router{
 
         $this->infos = explode('/', substr($raw['path'], 1));
 
-        if(empty($this->infos[0])) throw new LxrException("Welcome !", 1);
+        if(empty($this->infos[0]) || substr($this->infos[0],0,6) == 'index.') throw new LxrException("Welcome !", 1);
 
         try{
             $this->getLang();
@@ -107,8 +107,8 @@ class Router{
             if(!empty($raw['query'])){
                 $this->getOptionals($raw['query']);
             }
-        }catch(Exception $err){
-            throw $err;
+        }catch(LxrException $err){
+            throw new LxrException($err->getMessage(), $err->getCode());
         }
 
         // If type not set, we're dealing with object
@@ -120,8 +120,6 @@ class Router{
     }
 
     private function getLang(){
-        if(empty($this->infos[0])) throw new LxrException("Error Processing Request", 915);
-        
         // If lang is set
         if(strlen($this->infos[0]) == 2){
             $this->lang = strtolower($this->infos[0]);
@@ -131,7 +129,7 @@ class Router{
     }
 
     private function getType(){
-        if(empty($this->infos[0])) throw new LxrException("Error Processing Request", 916);
+        if(empty($this->infos[0])) throw new LxrException("Type not set", 917);
 
         // Get Type
         $this->type = ucfirst(strtolower($this->infos[0]));

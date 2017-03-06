@@ -121,9 +121,6 @@ require_once (__ROOT__ . 'Config/config.php');
 // Import db configuration
 require_once (__ROOT__ . 'Config/db_config.php');
 
-// Import correct format
-require_once (__ROOT__ . 'Utils/LXR_formats.php');
-
 // Connect bot if needed
 if(!$bot->isConnected()){
     try{

@@ -32,14 +32,23 @@ class Object_Model extends Struct_Model
     private $id_array;
     
 
-    function __construct($db_mode, $db_config) {
-        $this->type = 'Object';
-        parent::__construct($db_mode, $db_config, $this->type);
+    function __construct($db_mode, $db_config, $type=NULL) {
+        $this->type = (empty($type)) ? 'Object' : $type;
+        try{
+            parent::__construct($db_mode, $db_config, $this->type);
+        }catch(Exception $err){
+            throw new LxrException($err->getMessage(),3501);
+        }
         
         $this->collection_list = [];
-        $this->flag_list = $this->lxr->getFlagList();
         $this->searching = FALSE;
 
+        try{
+            $this->flag_list = $this->lxr->getFlagList();    
+        }catch(Exception $err){
+            throw new LxrException($err->getMessage(),3502);
+        }
+        
         if(!empty($this->flag_list)){
             foreach ($this->flag_list as $objectType => $collection) {
                 $this->collection_list[$objectType] = array_keys($collection);
@@ -51,72 +60,67 @@ class Object_Model extends Struct_Model
 
         try {
             # Return only one object to test if exists
-            $this->result = $this->lxr->getObjectListByType($objectType, 1);
+            $result = $this->lxr->getObjectListByType($objectType, 1);
         }
-        catch(Exception $e) {
-            $this->error = 3501;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3503);
         }
         
-        return !empty($this->result);
+        return !empty($result);
     }
     
     // Check if object exist
     public function objectExists($objectType, $id) {
-        $this->getObjectByID($objectType, $id, FALSE);
+        try {
+            $this->getObjectByID($objectType, $id, FALSE);
+        } catch (Exception $err) {
+            throw new LxrException($err->getMessage(),3504);
+        }
         return !empty($this->result[0]);
     }
     
     // Return the list of available objects
     public function getObjectList($count = 0) {
-        if (empty($this->structure_list)){
-            $this->error = 3502;
-            $this->message = 'Empty structure list';
-            return FALSE;
-        }
+        if (empty($this->structure_list)) throw new LxrException("No structure.", 204);
         
         foreach ($this->structure_list as $name => $options) {
             if (isset($options['SYSTEM']) && $options['SYSTEM']) continue;
-            
-            $this->result[$name] = $this->structure_list[$name];
+            $this->result[] = $name;
         }
         
-        if (empty($this->result) || !is_array($this->result)) return FALSE;
+        if (empty($this->result) || !is_array($this->result)) throw new LxrException('No object.',204);
         
         if ($count > 0) $this->result = array_slice($this->result, 0, $count);
 
-        return TRUE;
+        return $this->result;
         
     }
     
     // Return a list of object from a specific type
     // If recursive is set we will also retrieve its childrens
     public function getObjectListByType($objectType, $recursive, $count = 0) {
+        try{
+            $id_list = $this->getAllIDByType($objectType);
+        }catch(Exception $err){
+            throw new LxrException($err->getMessage(),$err->getCode());
+        }
         
-        $id_list = $this->getAllIDByType($objectType);
-
-        if(!empty($this->error)) return FALSE;
-
         $raw = $this->getCollectionByID($objectType, $id_list, $recursive);
         
-        if (empty($raw) || !is_array($raw)){
-            $this->result = NULL;
-        }
-        else if ($count > 0){
-            $this->result = array_slice($raw, 0, $count);
-        }
-        else{
-            $this->result = $raw;
-        }
+        if (empty($raw) || !is_array($raw)) throw new LxrException('No object.', 204);
+        else if ($count > 0) $this->result = array_slice($raw, 0, $count);
+        else $this->result = $raw;
 
-        return TRUE;
+        return $this->result;
     }
 
     public function selectObjectListByType($objectType, $selector, $recursive, $count = 0) {
-        $id_list = $this->selectAllIDByType($objectType, $selector);
-        if(!empty($this->error)) return FALSE;
-
+        try{
+            $id_list = $this->selectAllIDByType($objectType, $selector);
+        }catch(Exception $err){
+            throw new LxrException($err->getMessage(),$err->getCode());
+        }
+        
         $raw = $this->getCollectionByID($objectType, $id_list, $recursive);
         
         if (empty($raw) || !is_array($raw)){
@@ -137,13 +141,11 @@ class Object_Model extends Struct_Model
         try {
             $raw = $this->lxr->getObjectListByType($objectType);
         }
-        catch(Exception $e) {
-            $this->error = 3503;
-            $this->message = $e->getMessage();
-            return NULL;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3505);
         }
         
-        if (empty($raw) || !is_array($raw)) return NULL;
+        if (empty($raw) || !is_array($raw)) throw new LxrException('No Object.',204);
 
         return $raw;
     }
@@ -152,10 +154,8 @@ class Object_Model extends Struct_Model
         try {
             $raw = $this->lxr->selectObjectListByType($objectType, $selector);
         }
-        catch(Exception $e) {
-            $this->error = 3503;
-            $this->message = $e->getMessage();
-            return NULL;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3506);
         }
         
         if (empty($raw) || !is_array($raw)) return NULL;
@@ -167,8 +167,11 @@ class Object_Model extends Struct_Model
     public function getObjectByID($objectType, $id, $recursive) {
         # reset result
         unset($this->result);
-        $this->result = array();
-        $this->result[] = $this->getObjectByIDInner($objectType, $id, $recursive);
+        try {
+            $this->result = $this->getObjectByIDInner($objectType, $id, $recursive);
+        } catch (Exception $err) {
+            throw new LxrException($err->getMessage(),$err->getCode());
+        }
         
         return $this->result[0];
     }
@@ -179,13 +182,12 @@ class Object_Model extends Struct_Model
         try {
             $result = $this->lxr->getObjectByID($objectType, $id);
         }
-        catch(Exception $e) {
-            $this->error = 3504;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3507);
         }
         
-        if(empty($result)) return FALSE;
+        if(empty($result)) throw new LxrException("Object not found", 204);
+        ;
 
         $fields = $this->structure_list[$objectType];
         
@@ -258,10 +260,7 @@ class Object_Model extends Struct_Model
         }
         
         // Return simple empty data set if nothing is found
-        if (empty($this->id_array)){
-            $this->result = NULL;
-            return TRUE;
-        }
+        if (empty($this->id_array)) throw new LxrException("No object.", 204);
         
         $this->result = $this->getCollectionByID($objectType, $this->id_array, $recursive);
         
@@ -276,8 +275,12 @@ class Object_Model extends Struct_Model
         if (empty($id_list) || !is_array($id_list)) return NULL;
         
         foreach ($id_list as $id) {
-            $tmp = $this->getObjectByIDInner($objectType, (int)$id, $recursive);
-            if(!empty($tmp)) $result[] = $tmp;
+            try{
+                $tmp = $this->getObjectByIDInner($objectType, (int)$id, $recursive);
+                if(!empty($tmp)) $result[] = $tmp;
+            }catch(Exception $err){
+                throw new LxrException($err->getMessage(),$err->getCode());
+            }
         }
         
         return $result;
@@ -285,7 +288,11 @@ class Object_Model extends Struct_Model
     
     // Return objects having a NOT indexable flag
     private function getUnindexIDList($objectType, $flag) {
-        return $this->lxr->getUnindexIDList($objectType, $flag);
+        try{
+            return $this->lxr->getUnindexIDList($objectType, $flag);
+        }catch(Exception $err){
+            throw new LxrException($err->getMessage(),3508);
+        }
     }
     
     // Return objects from a collection list
@@ -305,6 +312,7 @@ class Object_Model extends Struct_Model
     private function getCollectionByFlag($objectType, $flag) {
         // If some search has already returned empty result... skip searching (AND condition on flags !)
         if($this->searching && empty($this->id_array)) return TRUE;
+
         $this->searching = TRUE;
         
         // If flag is unindexable
@@ -313,17 +321,15 @@ class Object_Model extends Struct_Model
                 // Return all object having the unindexable flag
                 $tmp = $this->getUnindexIDList($objectType, $flag);
             }
-            catch(Exception $e) {
-                $this->error = 3505;
-                $this->message = $e->getMessage();
-                return FALSE;
+            catch(Exception $err) {
+                throw new LxrException($err->getMessage(),$err->getCode());
             }
             
             // If we already have some results
             if (!empty($this->id_array)) {
                 
                 // Add corresponding object list to result array
-                if (!empty($tmp)) $this->id_array = array_intersect($this->id_array, $tmp);
+                if (!empty($tmp)) $this->id_array = @array_intersect($this->id_array, $tmp);
                 // If array found is empty, result is empty... AND operation between flags !!
                 else $this->id_array = NULL;
             }
@@ -343,14 +349,11 @@ class Object_Model extends Struct_Model
             // If flag is unindexable
             if (substr($flag, 0, 1) === "_") {
                 try {
-                    
                     // Return all object having the unindexable flag
                     $exclude_array = $this->getUnindexIDList($objectType, $flag);
                 }
-                catch(Exception $e) {
-                    $this->error = 3506;
-                    $this->message = $e->getMessage();
-                    return FALSE;
+                catch(Exception $err) {
+                    throw new LxrException($err->getMessage(),$err->getCode());
                 }
             } 
             else {
@@ -358,10 +361,8 @@ class Object_Model extends Struct_Model
                     // Return the collection of object
                     $exclude_array = $this->getIDList($objectType, strtocapital($flag));
                 }
-                catch(Exception $e) {
-                    $this->error = 3507;
-                    $this->message = $e->getMessage();
-                    return FALSE;
+                catch(Exception $err) {
+                    throw new LxrException($err->getMessage(),$err->getCode());
                 }
             }
             
@@ -373,30 +374,25 @@ class Object_Model extends Struct_Model
                 
                 // If id_array is NULL, will return NULL without sending error
                 $this->id_array = @array_diff($this->id_array, $exclude_array);
-
             }
         }
         
         // If the flag is indexable
         else {
             try {
-                
                 // Return the collection of object
                 $tmp = $this->getIDList($objectType, $flag);
             }
-            catch(Exception $e) {
-                $this->error = 3508;
-                $this->message = $e->getMessage();
-                return FALSE;
+            catch(Exception $err) {
+                throw new LxrException($err->getMessage(),$err->getCode());
             }
             
             // If we already have some results
             if (!empty($this->id_array)) {
                 // Add corresponding object list to result array
-                if (!empty($tmp)) $this->id_array = array_intersect($this->id_array, $tmp);
+                if (!empty($tmp)) $this->id_array = @array_intersect($this->id_array, $tmp);
                 // If array found is empty, result is empty... AND operation between flags !!
                 else $this->id_array = NULL;
-                
             }
             
             // If it's the first results we have
@@ -412,11 +408,8 @@ class Object_Model extends Struct_Model
     private function checkObject($objectType, $data) {
         
         // If object type does not exists skip action
-        if (empty($this->structure_list) || !array_key_exists($objectType, $this->structure_list)){
-            $this->error = 3509;
-            $this->message = 'Unknown type';
-            return FALSE;
-        }
+        if (!array_key_exists($objectType, $this->structure_list)) throw new LxrException("Unknown object type.", 3508);
+        
         
         $structure = $this->structure_list[$objectType]['STRUCT'];
         
@@ -432,7 +425,7 @@ class Object_Model extends Struct_Model
         foreach ($structure as $field => $fieldOpts) {
             
             // Avoid modifying the id field
-            if (strtolower($field) === "_id") continue;
+            if (strtolower($field) === TABLE_PREFIX."id") continue;
             
             $field = strtocapital($field);
             $fieldType = $fieldOpts['type'];
@@ -450,12 +443,9 @@ class Object_Model extends Struct_Model
                             if (!empty($fieldOpts['default']) && parent::isValidField($field, $fieldOpts['default'])) {
                                 $clean[$field] = base64_encode($fieldOpts['default']);
                             }
-                            
                             // If no default value exists return error
                             else {
-                                $this->error = 3510;
-                                $this->message = $field.' value is required';
-                                return FALSE;
+                                throw new LxrException("$field value is required", 3510);
                             }
                         }
                         
@@ -466,9 +456,7 @@ class Object_Model extends Struct_Model
                         
                         // If a value is set but invalid
                         else {
-                            $this->error = 3511;
-                            $this->message = $field.' value is invalid';
-                            return FALSE;
+                            throw new LxrException("$field value is invalid", 3511);
                         }
                     }
                     
@@ -492,15 +480,11 @@ class Object_Model extends Struct_Model
                         if (!empty($data[$field])) {
                             if (isValidID($data[$field])) $clean[$field] = $data[$field];
                             else{
-                                $this->error = 3512;
-                                $this->message = $field.' ID is invalid';
-                                return FALSE;
+                                throw new LxrException("$field ID is invalid", 3512);
                             }
                         } 
                         else {
-                            $this->error = 3513;
-                            $this->message = $field.' ID is required';
-                            return FALSE;
+                            throw new LxrException("$field ID is required", 3513);
                         }
                     } 
                     else {
@@ -517,15 +501,11 @@ class Object_Model extends Struct_Model
                             if (is_array($data[$field])) $clean[$field] = array2ID($data[$field]);
                             else if (isValidCollectionID($data[$field])) $clean[$field] = $data[$field];
                             else{
-                                $this->error = 3514;
-                                $this->message = $field.' collection is invalid';
-                                return FALSE;
+                                throw new LxrException("$field collection is required", 3514);
                             }
                         } 
                         else {
-                            $this->error = 3515;
-                            $this->message = $field.' collection is required';
-                            return FALSE;
+                            throw new LxrException("$field collection is required", 3515);
                         }
                     } 
                     else {
@@ -556,9 +536,7 @@ class Object_Model extends Struct_Model
                             $clean[$field] = array2ID($data[$field]);
                         } 
                         else {
-                            $this->error = 3516;
-                            $this->message = $field.' collection is invalid';
-                            return FALSE;
+                            throw new LxrException("$field collection is invalid", 3516);
                         }
                     }
                     
@@ -579,12 +557,10 @@ class Object_Model extends Struct_Model
         
         // If everything went fine, store the new object
         try {
-            $this->result['_id'] = $this->lxr->storeObject($objectType, $clean);
+            $this->result[TABLE_PREFIX.'id'] = $this->lxr->storeObject($objectType, $clean);
         }
-        catch(Exception $e) {
-            $this->error = 3518;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3517);
         }
         
         // Register all flag to this object type
@@ -595,12 +571,10 @@ class Object_Model extends Struct_Model
                 if (isValidFlag($f)) {
                     $f = ucfirst(strtolower($f));
                     try {
-                        $this->addFlagToID($objectType, $f, $this->result['_id']);
+                        $this->addFlagToID($objectType, $f, $this->result[TABLE_PREFIX.'id']);
                     }
-                    catch(Exception $e) {
-                        $this->error = 3519;
-                        $this->message = $e->getMessage();
-                        return FALSE;
+                    catch(Exception $err) {
+                        throw new LxrException($err->getMessage(),$err->getCode());
                     }
                 }
             }
@@ -608,7 +582,7 @@ class Object_Model extends Struct_Model
         
         // If no flag is set, asociate object to orphans
         else {
-            $this->setOrphan($objectType, $this->result['_id']);
+            $this->setOrphan($objectType, $this->result[TABLE_PREFIX.'id']);
         }
         
         $this->collection_list[$objectType] = $this->getFlagByType($objectType);
@@ -628,10 +602,8 @@ class Object_Model extends Struct_Model
         try {
             $this->lxr->updateObject($objectType, $id, $clean);
         }
-        catch(Exception $e) {
-            $this->error = 3521;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3518);
         }
         
         // Register all flag to this object type
@@ -644,10 +616,8 @@ class Object_Model extends Struct_Model
                     try {
                         $this->addFlag($objectType, $f, $id);
                     }
-                    catch(Exception $e) {
-                        $this->error = 3522;
-                        $this->message = $e->getMessage();
-                        return FALSE;
+                    catch(Exception $err) {
+                        throw new LxrException($err->getMessage(),$err->getCode());
                     }
                 }
             }
@@ -660,7 +630,7 @@ class Object_Model extends Struct_Model
         
         $this->collection_list[$objectType] = $this->getFlagByType($objectType);
         
-        $this->result['_id'] = $id;
+        $this->result[TABLE_PREFIX.'id'] = $id;
 
         return TRUE;
     }
@@ -686,10 +656,8 @@ class Object_Model extends Struct_Model
         try {
             $this->result = $this->lxr->deleteObject($objectType, $id);
         }
-        catch(Exception $e) {
-            $this->error = 3523;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3519);
         }
 
         return TRUE;
@@ -706,10 +674,8 @@ class Object_Model extends Struct_Model
         try {
             return $this->lxr->setOrphan($objectType, $id);
         }
-        catch(Exception $e) {
-            $this->error = 3524;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3520);
         }
     }
     
@@ -719,10 +685,8 @@ class Object_Model extends Struct_Model
         try {
             return $this->lxr->deleteOrphan($objectType, $id);
         }
-        catch(Exception $e) {
-            $this->error = 3525;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3521);
         }
     }
     
@@ -778,8 +742,8 @@ class Object_Model extends Struct_Model
                     try {
                         $this->lxr->deleteOrphan($objectType, $id);
                     }
-                    catch(Exception $e) {
-                        throw new Exception($e->getMessage());
+                    catch(Exception $err) {
+                        throw new LxrException($err->getMessage(),3522);
                     }
                 }
                 
@@ -788,8 +752,8 @@ class Object_Model extends Struct_Model
                     try {
                         $this->lxr->addFlag($objectType, $flag);
                     }
-                    catch(Exception $e) {
-                        throw new Exception($e->getMessage());
+                    catch(Exception $err) {
+                        throw new LxrException($err->getMessage(),3523);
                     }
                     
                     // update local flag list
@@ -800,15 +764,15 @@ class Object_Model extends Struct_Model
                 try {
                     $this->lxr->indexFlagToID($objectType, $flag, $id);
                 }
-                catch(Exception $e) {
-                    throw new Exception($e->getMessage());
+                catch(Exception $err) {
+                    throw new LxrException($err->getMessage(),3524);
                 }
             }
             
             $this->lxr->addFlagToID($objectType, $flag, $id);
         }
-        catch(Exception $e) {
-            throw new Exception($e->getMessage());
+        catch(Exception $err) {
+            throw new Exception($err->getMessage(), $err->getCode());
         }
         
         return TRUE;
@@ -820,10 +784,8 @@ class Object_Model extends Struct_Model
         try {
             return $this->lxr->getFlagByID($objectType, $id);
         }
-        catch(Exception $e) {
-            $this->error = 3526;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3525);
         }
     }
     
@@ -831,11 +793,7 @@ class Object_Model extends Struct_Model
     private function getFlagByType($objectType) {
         
         // If objectType does not exists skip it
-        if (!array_key_exists($objectType, $this->structure_list)){
-            $this->error = 3527;
-            $this->message = 'Invalid type';
-            return FALSE;
-        }
+        if (!array_key_exists($objectType, $this->structure_list)) throw new LxrException('Invalid object type',3526);
         
         if (empty($this->collection_list[$objectType])) $result[$objectType] = NULL;
         else $result[$objectType] = $this->collection_list[$objectType];
@@ -895,20 +853,16 @@ class Object_Model extends Struct_Model
             
             if (substr($flag, 0, 1) !== "_") $this->lxr->unindexIDFromFlag($objectType, $flag, $id);
         }
-        catch(Exception $e) {
-            $this->error = 3528;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3526);
         }
         
         // Retrieve id list for specific flag
         try {
             $id_list = $this->lxr->getIDList($objectType, $flag);
         }
-        catch(Exception $e) {
-            $this->error = 3529;
-            $this->message = $e->getMessage();
-            return FALSE;
+        catch(Exception $err) {
+            throw new LxrException($err->getMessage(),3527);
         }
         
         // If object has no more flag set, remove flag
@@ -918,9 +872,7 @@ class Object_Model extends Struct_Model
                 $this->lxr->deleteFlag($objectType, $flag);
             }
             catch(Exception $e) {
-                $this->error = 3530;
-                $this->message = $e->getMessage();
-                return FALSE;
+                throw new LxrException($err->getMessage(),3528);
             }
             
             // If object as not more indexable flag, register it as orphan
@@ -950,11 +902,7 @@ class Object_Model extends Struct_Model
     
     // Special selection function
     public function get($expression, $recursive = FALSE) {
-        if (empty($expression)){
-            $this->error = 3591;
-            $this->message = 'Empty expression';
-            return FALSE;
-        }
+        if (empty($expression)) throw new LxrException('Empty expression',3529);
         
         // Remove first and last charactere
         $expression = substr(substr($expression, 1), 0, -1);
@@ -1002,11 +950,7 @@ class Object_Model extends Struct_Model
         }
         
         // Minimum set is type and flag
-        if (!isValidObjectName($objectType)){
-            $this->error = 3592;
-            $this->message = 'Invalid object Name';
-            return FALSE;
-        }
+        if (!isValidObjectName($objectType)) throw new LxrException('Invalid object name',3530);
         
         // Fields check
         $flags = explode(",", $flag_list);
@@ -1020,10 +964,7 @@ class Object_Model extends Struct_Model
         }
         
         // If nothing has been found, we can stop here
-        if (empty($this->id_array)){
-            $this->result = NULL;
-            return TRUE;
-        }
+        if (empty($this->id_array)) throw new LxrException('No Object.',204);
         
         // Array of id is parsed to be unique
         $this->id_array = array_unique($this->id_array);

@@ -176,8 +176,7 @@ Class Object_Manager extends DB_Manager
     public function storeObject($objectName, $data){
         // Add an entry in the object table
         $table = USER_PREFIX.$objectName;
-        // Artifically add id
-        if(empty($data[TABLE_PREFIX.'id'])) $data[TABLE_PREFIX.'id'] = getLxrId();
+        
         try{
             $this->driver->insertData($table, $data);
             return $data[TABLE_PREFIX.'id'];

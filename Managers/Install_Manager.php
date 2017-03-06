@@ -32,6 +32,9 @@ Class Install_Manager extends DB_Manager
     // Initialize the minimal DB structure
     public function initialize(){
         
+        // Import correct format
+        require_once (__ROOT__ . 'Utils/LXR_formats.php');
+        
         // Create table with correct params
         try{
             $this->driver->createTable(DB_PREFIX.'Users', $system_user, TRUE);

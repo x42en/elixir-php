@@ -60,7 +60,7 @@ class Struct_Controller extends LXR_Controller
             // Check request params against action type
             parent::POSTisClean($request);
 
-            $result = $this->handle->newStructure($request->data['Name'], $request->data['Struct']);
+            $result = $this->handle->newStructure($request->data['Name'], $request->data['Struct'],$request->data['Description']);
         }catch(Exception $err){
             throw $err;
         }
@@ -74,7 +74,7 @@ class Struct_Controller extends LXR_Controller
             // Check request params against action type
             parent::PUTisClean($request);
 
-            $result = $this->handle->updateStructure($request->ressource, $request->data['Struct']);
+            $result = $this->handle->updateStructure($request->ressource, $request->data['Name'], $request->data['Struct'],$request->data['Description']);
         }catch(Exception $err){
             throw $err;
         }

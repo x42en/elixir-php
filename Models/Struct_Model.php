@@ -111,16 +111,26 @@ class Struct_Model extends Field_Model
     }
     
     // Add a new object structure to Framework
-    public function newStructure($structName = NULL, $struct = NULL) {
-        if($this->updateStructure($structName, $struct))
+    public function newStructure($structName = NULL, $struct = NULL, $desc = NULL) {
+        try{
+            $created = $this->updateStructure(strtoupper($structName), $structName, $struct, $desc);
+        }catch(Exception $err){
+            throw $err;
+        }
+        
+        try {
             // Create an entry for orphans object
-            return $this->lxr->addFlag($structName, "_ORPHANS");
-        else
-            return FALSE;
+            $this->lxr->addFlag($structName, "_ORPHANS");
+        } catch (Exception $err) {
+            throw $err;
+        }
+        
+        return $this->result;
+        
     }
     
     // Update object structure in Framework
-    public function updateStructure($structName = NULL, $struct = NULL) {
+    public function updateStructure($oldName = NULL, $structName = NULL, $struct = NULL, $desc = NULL) {
         
         // If structure empty or not correct return error
         if (!isValidJson($struct)){
@@ -128,72 +138,63 @@ class Struct_Model extends Field_Model
         }
         
         $struct = json_decode($struct, TRUE);
+        $fields = $objects = $collections = array();
 
-        foreach ($struct as $name => $options) {
-            $name = strtoupper($name);
-            
-            // If object structure is not defined, skip it
-            if (empty($options['STRUCT'])) continue;
-            
-            // Set the privacy options
-            if (!empty($options['PRIVACY']) && isValidCollection($options['PRIVACY'])) $clean['PRIVACY'] = $options['PRIVACY'];
-            else $clean['PRIVACY'] = null;
-            
-            // Set the description option
-            if (!empty($options['DESCRIPTION']) && isValidDescription($options['DESCRIPTION'])) $clean['DESCRIPTION'] = $options['DESCRIPTION'];
-            else $clean['DESCRIPTION'] = 'N/A';
-            
-            $fields = $objects = $collections = array();
-            
-            // Cleaning the requested structure
-            foreach ($options['STRUCT'] as $field => $fieldOpts) {
-                
-                // foreach ($entry as $field => $fieldOpts) {
-                $fieldType = strtolower($fieldOpts['type']);
-                $field = strtocapital($field);
-                
-                switch ($fieldType) {
-                    case 'field':
-                        if (array_key_exists($field, $this->field_list)) {
-                            $fields[$field]['type'] = 'field';
-                            
-                            if (!empty($fieldOpts['required']) && $fieldOpts['required']) $fields[$field]['required'] = True;
-                            else $fields[$field]['required'] = FALSE;
-                            
-                            if (!empty($fieldOpts['default']) && parent::isValidField($field, $fieldOpts['default'])) $fields[$field]['default'] = $fieldOpts['default'];
-                            else $fields[$field]['default'] = NULL;
-                        }
-                        break;
+        // Set name object
+        $this->result['NAME'] = $name = strtoupper($structName);
 
-                    case 'object':
-                        if (array_key_exists(strtoupper($field), $this->structure_list)) {
-                            $objects[$field]['type'] = 'object';
-                            
-                            if (!empty($fieldOpts['required']) && $fieldOpts['required']) $objects[$field]['required'] = True;
-                            else $objects[$field]['required'] = FALSE;
-                            
-                            if (!empty($fieldOpts['default']) && isValidID($fieldOpts['default'])) $objects[$field]['default'] = $fieldOpts['default'];
-                            else $objects[$field]['default'] = NULL;
-                        }
-                        break;
+        // Set the description option
+        if (empty($desc) || !isValidDescription($desc)) $this->result['DESCRIPTION'] = 'N/A';
+        else $this->result['DESCRIPTION'] = $desc;
 
-                    case 'collection':
-                        if (array_key_exists(strtoupper($field), $this->structure_list)) {
-                            $collections[$field]['type'] = 'collection';
-                            
-                            if (!empty($fieldOpts['required']) && $fieldOpts['required']) $collections[$field]['required'] = True;
-                            else $collections[$field]['required'] = FALSE;
-                            
-                            if (!empty($fieldOpts['default']) && isValidCollection($fieldOpts['default'])) $collections[$field]['default'] = $fieldOpts['default'];
-                            else $collections[$field]['default'] = NULL;
-                        }
-                        break;
+        // Cleaning the requested structure
+        foreach ($struct as $field => $fieldOpts) {
+            
+            // foreach ($entry as $field => $fieldOpts) {
+            $fieldType = strtolower($fieldOpts['type']);
+            $field = strtocapital($field);
+            
+            switch ($fieldType) {
+                case 'field':
+                    if (array_key_exists($field, $this->field_list)) {
+                        $fields[$field]['type'] = 'field';
+                        
+                        if (!empty($fieldOpts['required']) && $fieldOpts['required']) $fields[$field]['required'] = True;
+                        else $fields[$field]['required'] = FALSE;
+                        
+                        if (!empty($fieldOpts['default']) && parent::isValidField($field, $fieldOpts['default'])) $fields[$field]['default'] = $fieldOpts['default'];
+                        else $fields[$field]['default'] = NULL;
+                    }
+                    break;
 
-                    default:
-                        break;
-                }
-         
+                case 'object':
+                    if (array_key_exists(strtoupper($field), $this->structure_list)) {
+                        $objects[$field]['type'] = 'object';
+                        
+                        if (!empty($fieldOpts['required']) && $fieldOpts['required']) $objects[$field]['required'] = True;
+                        else $objects[$field]['required'] = FALSE;
+                        
+                        if (!empty($fieldOpts['default']) && isValidID($fieldOpts['default'])) $objects[$field]['default'] = $fieldOpts['default'];
+                        else $objects[$field]['default'] = NULL;
+                    }
+                    break;
+
+                case 'collection':
+                    if (array_key_exists(strtoupper($field), $this->structure_list)) {
+                        $collections[$field]['type'] = 'collection';
+                        
+                        if (!empty($fieldOpts['required']) && $fieldOpts['required']) $collections[$field]['required'] = True;
+                        else $collections[$field]['required'] = FALSE;
+                        
+                        if (!empty($fieldOpts['default']) && isValidCollection($fieldOpts['default'])) $collections[$field]['default'] = $fieldOpts['default'];
+                        else $collections[$field]['default'] = NULL;
+                    }
+                    break;
+
+                default:
+                    break;
             }
+     
         }
         
         // Add the common structure
@@ -206,31 +207,31 @@ class Struct_Model extends Field_Model
         
         
         // Merge fields found for this structure in array
-        $obj_struct = array_merge($fields, $objects, $collections);
+        $this->result['STRUCT'] = array_merge($fields, $objects, $collections);
         
         $renamed = FALSE;
         
         // Check if we need to rename structure
-        if ($name !== $structName) {
+        if ($name !== $oldName) {
             
             try {
-                $this->lxr->renameStruct($structName, $name);
+                $this->lxr->renameStruct($oldName, $name);
             }
             catch(Exception $err) {
                 throw $err;
             }
             
             // Rename local variables
-            $this->structure_list[$name] = $this->structure_list[$structName];
-            unset($this->structure_list[$structName]);
+            $this->structure_list[$name] = $this->structure_list[$oldName];
+            unset($this->structure_list[$oldName]);
             
             $renamed = TRUE;
         }
         
         // If object does not exists create it
-        if (!$renamed && (empty($this->structure_list) || !array_key_exists($structName, $this->structure_list))) {
+        if (!$renamed && (empty($this->structure_list) || !array_key_exists($oldName, $this->structure_list))) {
             try {
-                $this->result[TABLE_PREFIX.'id'] = $this->lxr->newStruct($structName, $clean['DESCRIPTION'], $obj_struct);
+                $this->result['NAME'] = $this->lxr->newStruct($oldName, $this->result['DESCRIPTION'], $this->result['STRUCT']);
             }
             catch(Exception $err) {
                 throw $err;
@@ -241,9 +242,9 @@ class Struct_Model extends Field_Model
         else {
             
             // Check if we need to change structure description
-            if ($clean['DESCRIPTION'] !== $this->structure_list[$name]['DESCRIPTION']) {
+            if ($this->result['DESCRIPTION'] !== $this->structure_list[$name]['DESCRIPTION']) {
                 try {
-                    $this->lxr->updateStructDesc($name, $clean['DESCRIPTION']);
+                    $this->lxr->updateStructDesc($name, $this->result['DESCRIPTION']);
                 }
                 catch(Exception $err) {
                     throw $err;
@@ -251,7 +252,7 @@ class Struct_Model extends Field_Model
             }
             
             // Compare each field with previous one
-            foreach ($obj_struct as $field => $options) {
+            foreach ($this->result['STRUCT'] as $field => $options) {
                 
                 // Skip system fields already set
                 if ($options['type'] === "system") continue;
@@ -288,7 +289,7 @@ class Struct_Model extends Field_Model
                 foreach ($this->structure_list[$name]['STRUCT'] as $field => $options) {
                     
                     // If field no longer exists
-                    if (!array_key_exists($field, $obj_struct)) {
+                    if (!array_key_exists($field, $this->result['STRUCT'])) {
                         unset($this->structure_list[$name]['STRUCT'][$field]);
                         try {
                             $this->lxr->deleteObjectField($name, $field);
@@ -302,13 +303,12 @@ class Struct_Model extends Field_Model
             
             // Finally update struct in Objects table
             try {
-                $this->lxr->updateStruct($name, $obj_struct);
+                $this->lxr->updateStruct($name, $this->result['STRUCT']);
             }
             catch(Exception $err) {
                 throw $err;
             }
 
-            $this->result[TABLE_PREFIX.'id'] = $name;
         }
 
         return $this->result;

@@ -77,6 +77,32 @@ class Struct_Manager extends DB_Manager
         return $structs_list;
     }
 
+    // Register a flag to a specific object type
+    public function addFlag($objectType, $flag){
+        // Add an entry in the flags table
+        $data = array('TYPE' => $objectType,
+                        'FLAG' => $flag);
+        
+        try{
+            return $this->driver->insertData(DB_PREFIX.'Flags', $data, TRUE);
+        }catch(Exception $e){
+            throw new LxrException($e->getMessage(),1041);
+        }
+    }
+
+    // Delete all flags of object type
+    public function clearFlags($objectType){
+        
+        // Add an entry in the object table
+        $where['TYPE'] = $objectType;
+        
+        try{
+            return $this->driver->deleteData(DB_PREFIX.'Flags', $where);
+        }catch(Exception $e){
+            throw new LxrException($e->getMessage(),1048);
+        }
+    }
+
     // Create a new structure
     public function newStruct($structName, $structDesc, $structure){
         
@@ -112,13 +138,10 @@ class Struct_Manager extends DB_Manager
 
         // Create table with correct params
         try{
-            $this->driver->createTable(USER_PREFIX.$structName, $params);
+            return $this->driver->createTable(USER_PREFIX.$structName, $params);
         }catch(Exception $e){
             throw new LxrException($e->getMessage(),1017);
         }
-        
-
-        return True;
 
     }
 

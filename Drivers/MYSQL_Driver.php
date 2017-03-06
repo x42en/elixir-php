@@ -232,11 +232,13 @@ Class MYSQL_Driver extends Abstract_Driver
         if($increment) $req .= " AUTO_INCREMENT=1";
         
         try {
-            return $this->execData($req);
+            $this->execData($req);
         }
         catch(Exception $e) {
             throw new Exception($e->getMessage());
         }
+
+        return $tableName;
     }
     
     // Rename a table
@@ -374,7 +376,7 @@ Class MYSQL_Driver extends Abstract_Driver
     public function getData($table) {
         
         // $sql = "SELECT * FROM :table";
-        // $sql_param = array(':table' => $table);
+        // $sql_param = array('table' => $table);
         
         $sql = "SELECT * FROM `" . $table . "`";
         
@@ -412,6 +414,9 @@ Class MYSQL_Driver extends Abstract_Driver
     // Insert data on a given table
     public function insertData($table, $params, $insertID=False) {
         
+        // Generate MongoDB compliant ID
+        if(empty($params[TABLE_PREFIX.'id'])) $params[TABLE_PREFIX.'id'] = generate_id_hex();
+
         // Write query
         $query = "INSERT INTO `" . $table . "` (";
         $end_query = ") VALUES(";
@@ -435,7 +440,9 @@ Class MYSQL_Driver extends Abstract_Driver
         
         // Execute query against DB
         try {
-            return $this->setData($query, $query_params, $insertID);
+            $this->setData($query, $query_params);
+            if($insertID) return $params[TABLE_PREFIX.'id'];
+            else return TRUE;
         }
         catch(Exception $ex) {
             throw new Exception($ex->getMessage());
@@ -519,7 +526,7 @@ Class MYSQL_Driver extends Abstract_Driver
     }
     
     // Add data on a table and optionally return last inserted ID
-    private function setData($query, $query_params, $insertID=False) {
+    private function setData($query, $query_params) {
         
         try {
             
@@ -531,8 +538,7 @@ Class MYSQL_Driver extends Abstract_Driver
             throw new Exception($ex->getMessage());
         }
         
-        if ($insertID) return $this->DBH->lastInsertId();
-        else return TRUE;
+        return TRUE;
     }
     
     // Select subset of data in table based on $where conditions
